@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DoseBot App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#0b1120">
+
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Loading screen (shown until auth confirmed) -->
+<div id="appLoader">
+  <div class="loader-ring"></div>
+  <p class="loader-text">Loading DoseBot…</p>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-shell">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-brand-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="11" width="18" height="11" rx="2" fill="white" opacity="0.25"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="2.2" fill="white"/>
+        </svg>
+      </div>
+      <span class="sidebar-brand-name">DoseBot</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Monitor</div>
+      <button class="nav-item active" data-section="dashboard" aria-label="Dashboard">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-section="dispense-log" aria-label="Dispense Log">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        Dispense Log
+      </button>
+
+      <div class="sidebar-section-label" style="margin-top:8px">Actions</div>
+      <button class="nav-item" data-section="prescription" aria-label="Prescription">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M12 12v4M10 14h4"/></svg>
+        Prescription
+      </button>
+      <button class="nav-item" data-section="chatbot" aria-label="AI Chatbot">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI Chatbot
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item" data-section="profile" aria-label="Profile">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Profile
+      </button>
+      <button class="logout-btn" id="logoutBtn" aria-label="Sign out">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== TOPBAR ===== -->
+  <header class="topbar" role="banner">
+    <button class="topbar-menu-btn" id="menuBtn" aria-label="Toggle sidebar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    <div class="topbar-right">
+      <div class="topbar-conn" aria-live="polite">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connText">Connecting…</span>
+      </div>
+      <button class="user-btn" id="userBtn" aria-label="User profile">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span class="user-name" id="userName">Loading…</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content" role="main">
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="section-view active" id="view-dashboard" aria-labelledby="dashTitle">
+      <div class="page-header">
+        <h1 class="page-title" id="dashTitle">Live Dashboard</h1>
+        <p class="page-sub">Real-time sensor data from the DoseBot kiosk via Firebase</p>
+      </div>
+
+      <div class="dash-toolbar">
+        <div class="system-badge" id="systemBadge" aria-live="polite">
+          <span class="badge-dot"></span>
+          <span id="systemBadgeText">Connecting…</span>
+        </div>
+        <div class="dash-toolbar-right">
+          <span class="last-sync" id="lastSync">Last sync: —</span>
+          <button class="sim-btn" id="simBtn" aria-label="Toggle simulation">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Simulate
+          </button>
+        </div>
+      </div>
+
+      <!-- Metric cards -->
+      <div class="metric-grid">
+        <div class="metric-card" id="mcard-temp" aria-label="Temperature">
+          <div class="metric-icon-wrap ic-teal">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+          </div>
+          <div class="metric-num" id="mTempVal">--</div>
+          <div class="metric-unit">°C</div>
+          <div class="metric-lbl">Temperature</div>
+          <div class="temp-alert" id="tempAlert" hidden>⚠ High Temp</div>
+          <div class="metric-prog"><div class="metric-bar bar-teal" id="mTempBar" style="width:0%"></div></div>
+        </div>
+        <div class="metric-card" aria-label="Humidity">
+          <div class="metric-icon-wrap ic-blue">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div class="metric-num" id="mHumVal">--</div>
+          <div class="metric-unit">%</div>
+          <div class="metric-lbl">Humidity</div>
+          <div class="metric-prog"><div class="metric-bar bar-blue" id="mHumBar" style="width:0%"></div></div>
+        </div>
+        <div class="metric-card" aria-label="Bottle Weight">
+          <div class="metric-icon-wrap ic-green">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l1 13H5.5z"/></svg>
+          </div>
+          <div class="metric-num" id="mWeightVal">--</div>
+          <div class="metric-unit">g</div>
+          <div class="metric-lbl">Bottle Weight</div>
+          <div class="metric-prog"><div class="metric-bar bar-green" id="mWeightBar" style="width:0%"></div></div>
+        </div>
+        <div class="metric-card" aria-label="Pill Count">
+          <div class="metric-icon-wrap ic-amber">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+          </div>
+          <div class="metric-num" id="mCountVal">--</div>
+          <div class="metric-unit">pills</div>
+          <div class="metric-lbl">Pill Count</div>
+          <div class="metric-prog"><div class="metric-bar bar-amber" id="mCountBar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- LED indicators -->
+      <div class="led-row">
+        <div class="led-item">
+          <div class="led-dot" id="led-bottle-dot"></div>
+          <div>
+            <div class="led-lbl">Bottle Present</div>
+            <div class="led-val" id="led-bottle-val">Unknown</div>
+          </div>
+        </div>
+        <div class="led-item">
+          <div class="led-dot" id="led-temp-dot"></div>
+          <div>
+            <div class="led-lbl">Temp Safe</div>
+            <div class="led-val" id="led-temp-val">Checking…</div>
+          </div>
+        </div>
+        <div class="led-item">
+          <div class="led-dot" id="led-ready-dot"></div>
+          <div>
+            <div class="led-lbl">Ready to Dispense</div>
+            <div class="led-val" id="led-ready-val">Waiting…</div>
+          </div>
+        </div>
+        <div class="led-item">
+          <div class="led-dot" id="led-fan-dot"></div>
+          <div>
+            <div class="led-lbl">Fan Active</div>
+            <div class="led-val" id="led-fan-val">Checking…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart + mini log -->
+      <div class="dash-two-col">
+        <div class="dash-card">
+          <div class="dash-card-hd">
+            <h3 class="dash-card-title">Temperature Trend</h3>
+            <div class="chart-legend">
+              <span class="lgd-dot" style="background:#0d9488"></span>Temp &nbsp;
+              <span class="lgd-dot" style="background:#ef4444"></span>28°C
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="tempChart" aria-label="Temperature trend"></canvas></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-hd">
+            <h3 class="dash-card-title">Recent Dispenses</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="badge-pill" id="dispenseCountBadge">0 events</span>
+              <button class="csv-btn" id="csvBtnDash">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                CSV
+              </button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="dtbl" aria-label="Recent dispenses">
+              <thead><tr><th>#</th><th>Time</th><th>Patient</th><th>Pills</th></tr></thead>
+              <tbody id="dispenseTbody">
+                <tr><td colspan="4" class="empty-td">No dispense events yet…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DISPENSE LOG ===== -->
+    <section class="section-view" id="view-dispense-log" aria-labelledby="logTitle">
+      <div class="page-header">
+        <h1 class="page-title" id="logTitle">Dispense Log</h1>
+        <p class="page-sub">Complete history of all dispense events</p>
+      </div>
+      <div class="log-toolbar">
+        <span class="log-count-badge" id="logCountBadge">0 events</span>
+        <div style="margin-left:auto">
+          <button class="csv-btn" id="csvBtnLog" style="padding:8px 14px;font-size:12px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="log-table-card">
+        <div class="tbl-wrap">
+          <table class="dtbl" aria-label="Full dispense log">
+            <thead><tr><th>#</th><th>Timestamp</th><th>Patient</th><th>Medicine</th><th>Pills</th><th>Doctor</th></tr></thead>
+            <tbody id="logTbody">
+              <tr><td colspan="6" class="empty-td">No events recorded yet…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRESCRIPTION ===== -->
+    <section class="section-view" id="view-prescription" aria-labelledby="rxTitle">
+      <div class="page-header">
+        <h1 class="page-title" id="rxTitle">Prescription</h1>
+        <p class="page-sub">Submit a prescription — the kiosk will read it and dispense</p>
+      </div>
+
+      <div class="prescription-layout">
+        <!-- Form -->
+        <div class="form-card">
+          <h2 class="form-card-title">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12v4M10 14h4"/><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            New Prescription
+          </h2>
+
+          <div class="form-row">
+            <div class="field-group">
+              <label class="field-label" for="rxPatient">Patient Name *</label>
+              <input class="field-input" type="text" id="rxPatient" placeholder="Full name">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="rxDoctor">Doctor Name *</label>
+              <input class="field-input" type="text" id="rxDoctor" placeholder="Dr. …">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="rxMedicine">Medication *</label>
+            <input class="field-input" type="text" id="rxMedicine" placeholder="e.g. Paracetamol 500mg">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="rxCount">Number of Pills *</label>
+            <div class="number-input-wrap">
+              <input class="field-input" type="number" id="rxCount" value="1" min="1" max="50">
+              <div class="pill-count-btns">
+                <button id="rxCountMinus" aria-label="Decrease">−</button>
+                <button id="rxCountPlus"  aria-label="Increase">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="rxNotes">Notes</label>
+            <textarea class="field-textarea" id="rxNotes" placeholder="Dosage instructions, allergies, etc."></textarea>
+          </div>
+
+          <button class="submit-btn" id="rxSubmitBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Submit Prescription
+          </button>
+        </div>
+
+        <!-- Status + current prescription -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="status-card">
+            <div class="status-card-title">Current Prescription</div>
+            <div class="status-field">
+              <span class="status-key">Patient</span>
+              <span class="status-val" id="curRxPatient">—</span>
+            </div>
+            <div class="status-field">
+              <span class="status-key">Medicine</span>
+              <span class="status-val" id="curRxMedicine">—</span>
+            </div>
+            <div class="status-field">
+              <span class="status-key">Pills</span>
+              <span class="status-val" id="curRxCount">—</span>
+            </div>
+            <div class="status-field">
+              <span class="status-key">Doctor</span>
+              <span class="status-val" id="curRxDoctor">—</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="system-badge" id="rxSystemBadge" style="width:100%;justify-content:center">
+              <span class="badge-dot"></span>
+              <span id="rxSystemBadgeText">Waiting for device…</span>
+            </div>
+          </div>
+
+          <div class="status-card">
+            <div class="status-card-title">Device Status</div>
+            <div class="status-field">
+              <span class="status-key">Bottle</span>
+              <span class="status-val" id="rxBottleStatus">—</span>
+            </div>
+            <div class="status-field">
+              <span class="status-key">Temperature</span>
+              <span class="status-val" id="rxTempStatus">—</span>
+            </div>
+            <div class="status-field">
+              <span class="status-key">Ready</span>
+              <span class="status-val" id="rxReadyStatus">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CHATBOT ===== -->
+    <section class="section-view" id="view-chatbot" aria-labelledby="chatTitle">
+      <div class="page-header">
+        <h1 class="page-title" id="chatTitle">AI Chatbot</h1>
+        <p class="page-sub">Ask about medications, symptoms, or dosage guidance</p>
+      </div>
+
+      <div id="chatApiNote" class="chat-api-note" hidden>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Chatbot API not configured. Set CHATBOT_API_URL in app.js to enable AI responses.
+      </div>
+
+      <div class="chat-layout">
+        <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Chat messages">
+          <div class="chat-welcome">
+            <div class="chat-welcome-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>DoseBot AI Assistant</h3>
+            <p>Ask me about medications, dosage, side effects, or general health questions. I'm here to help.</p>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea
+            class="chat-input"
+            id="chatInput"
+            placeholder="Ask about your medication…"
+            rows="1"
+            aria-label="Chat message"
+          ></textarea>
+          <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PROFILE ===== -->
+    <section class="section-view" id="view-profile" aria-labelledby="profileTitle">
+      <div class="page-header">
+        <h1 class="page-title" id="profileTitle">Profile</h1>
+        <p class="page-sub">Your account information</p>
+      </div>
+
+      <div class="profile-layout">
+        <div>
+          <div class="profile-card">
+            <div class="profile-avatar-wrap" id="profileAvatar">?</div>
+            <div class="profile-name" id="profileName">Loading…</div>
+            <div class="profile-email" id="profileEmail"></div>
+            <span class="profile-badge">DoseBot User</span>
+          </div>
+          <div class="danger-zone" style="margin-top:16px">
+            <div class="danger-zone-title">Account Actions</div>
+            <button class="danger-btn" id="profileLogout">Sign out of DoseBot</button>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">Account Details</div>
+          <div class="info-field">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <div>
+              <div class="info-key">Name</div>
+              <div class="info-val" id="infoName">—</div>
+            </div>
+          </div>
+          <div class="info-field">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <div class="info-key">Email</div>
+              <div class="info-val" id="infoEmail">—</div>
+            </div>
+          </div>
+          <div class="info-field">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+            </div>
+            <div>
+              <div class="info-key">Phone</div>
+              <div class="info-val" id="infoPhone">—</div>
+            </div>
+          </div>
+          <div class="info-field">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="info-key">Member Since</div>
+              <div class="info-val" id="infoJoined">—</div>
+            </div>
+          </div>
+          <div class="info-field" style="border-bottom:none">
+            <div class="info-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div class="info-key">Auth Provider</div>
+              <div class="info-val" id="infoProvider">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

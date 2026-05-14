@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered automated medication dispensing for rural healthcare access in Sri Lanka">
+  <meta name="theme-color" content="#0d9488">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="DoseBot — Smart Pill Dispenser by UoM Group 29">
+  <meta property="og:description" content="AI-powered automated medication dispensing for rural healthcare access in Sri Lanka">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:type" content="website">
+
+  <title>DoseBot — Smart Medication. Delivered with Precision.</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase compat SDK v9 -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="loading-spinner" aria-live="polite" aria-label="Connecting to Firebase">
+  <div class="spinner-ring"></div>
+  <p class="spinner-text">Connecting to DoseBot…</p>
+</div>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+<!-- WebGL Shader Canvas -->
+<canvas id="shaderCanvas" aria-hidden="true"></canvas>
+
+<!-- Floating Geometric Shapes (pills / molecules) -->
+<div class="geo-shapes" aria-hidden="true">
+  <svg class="geo geo-1" viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="none" stroke="#0d9488" stroke-width="2"/></svg>
+  <svg class="geo geo-2" viewBox="0 0 60 52"><polygon points="30,2 58,50 2,50" fill="none" stroke="#0d9488" stroke-width="2"/></svg>
+  <svg class="geo geo-3" viewBox="0 0 60 60"><polygon points="30,2 56,17 56,43 30,58 4,43 4,17" fill="none" stroke="#0d9488" stroke-width="2"/></svg>
+  <svg class="geo geo-4" viewBox="0 0 60 60"><circle cx="30" cy="30" r="20" fill="none" stroke="#0d9488" stroke-width="2"/><circle cx="30" cy="30" r="10" fill="none" stroke="#0d9488" stroke-width="1.5"/></svg>
+  <svg class="geo geo-5" viewBox="0 0 60 60"><rect x="8" y="8" width="44" height="44" rx="8" fill="none" stroke="#0d9488" stroke-width="2"/></svg>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="mainNav" class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-container">
+    <a href="#home" class="nav-brand" aria-label="DoseBot Home">
+      <div class="brand-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="11" width="18" height="11" rx="2" fill="currentColor" opacity="0.2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="2.2" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="brand-name">DoseBot</span>
+    </a>
+
+    <div class="nav-links" id="navLinks" role="list">
+      <a href="#problem"    class="nav-link" role="listitem">Problem</a>
+      <a href="#solution"   class="nav-link" role="listitem">Solution</a>
+      <a href="#technology" class="nav-link" role="listitem">Technology</a>
+      <a href="#dashboard"  class="nav-link" role="listitem">Live Dashboard</a>
+      <a href="#team"       class="nav-link" role="listitem">Team</a>
+    </div>
+
+    <div class="nav-actions">
+      <div class="nav-conn" aria-live="polite">
+        <span class="nav-conn-dot" id="navConnDot"></span>
+        <span class="nav-conn-text" id="navConnText">Connecting…</span>
+      </div>
+      <a href="webapp/" class="btn-app" aria-label="Open DoseBot App">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        Open App
+      </a>
+      <button class="btn-demo" id="requestDemoBtn" aria-label="Request a demo">Request Demo</button>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="home" class="hero" aria-labelledby="heroHeadline">
+  <div class="hero-inner">
+
+    <!-- Left -->
+    <div class="hero-left">
+      <div class="system-state-badge" id="heroStateBadge" aria-live="polite">
+        <span class="state-dot"></span>
+        <span class="state-text" id="heroStateText">Connecting…</span>
+      </div>
+
+      <h1 class="hero-headline" id="heroHeadline">
+        <span class="word">Smart</span>
+        <span class="word">Medication.</span><br>
+        <span class="word">Delivered</span>
+        <span class="word">with</span>
+        <span class="word accent-word">Precision.</span>
+      </h1>
+
+      <p class="hero-sub" id="heroSub">
+        AI-powered automated pill dispensing for rural healthcare access in Sri Lanka.
+        Reducing hospital congestion while improving medication access for communities —
+        powered by LabVIEW, Computer Vision, and Firebase.
+      </p>
+
+      <div class="hero-ctas" id="heroCtas">
+        <a href="#dashboard" class="btn-primary" aria-label="Jump to live dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          See Live Dashboard
+        </a>
+        <a href="#technology" class="btn-secondary" aria-label="View technology section">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          How It Works
+        </a>
+      </div>
+
+      <div class="hero-pills">
+        <span class="hero-pill">EE2044 Project</span>
+        <span class="hero-pill">University of Moratuwa</span>
+        <span class="hero-pill">Group 29</span>
+      </div>
+    </div>
+
+    <!-- Right: Device Visual -->
+    <div class="hero-visual" id="heroVisual">
+      <div class="device-glow" aria-hidden="true"></div>
+
+      <img
+        src="assets/dosebot-concept.png"
+        alt="DoseBot smart pill dispenser kiosk prototype with storage hopper, webcam, IR sensor and delivery bay"
+        class="kiosk-img"
+        id="kioskImg"
+        loading="eager"
+        onerror="this.style.display='none';document.getElementById('kioskFallback').style.display='flex'"
+      >
+
+      <!-- CSS Fallback Kiosk -->
+      <div class="kiosk-fallback" id="kioskFallback" aria-hidden="true">
+        <div class="kf-top">
+          <div class="kf-hopper"></div>
+          <div class="kf-wheel"></div>
+        </div>
+        <div class="kf-screen">
+          <div class="kf-bar"></div>
+          <div class="kf-bar kf-bar-short"></div>
+          <div class="kf-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="kf-cam"></div>
+        <div class="kf-bay">
+          <div class="kf-bottle"></div>
+        </div>
+        <div class="kf-label">DoseBot · EE2044</div>
+      </div>
+
+      <!-- Floating Feature Badges -->
+      <div class="float-badge fb-1" aria-hidden="true">
+        <span>🌡</span> Temp Monitored
+      </div>
+      <div class="float-badge fb-2" aria-hidden="true">
+        <span>👁</span> CV Verified
+      </div>
+      <div class="float-badge fb-3" aria-hidden="true">
+        <span>☁</span> Cloud Connected
+      </div>
+    </div>
+
+  </div>
+
+  <a href="#problem" class="scroll-hint" aria-label="Scroll down to learn more">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </a>
+</section>
+
+<!-- ===== PROBLEM ===== -->
+<section id="problem" class="section" aria-labelledby="problemTitle">
+  <div class="section-wrap">
+    <div class="section-badge">The Problem</div>
+    <h2 class="section-title" id="problemTitle">Rural Healthcare Deserves Better</h2>
+    <p class="section-sub">In Sri Lanka's rural communities, accessing basic medication requires hours of waiting — for conditions that don't need a doctor.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card reveal-item" data-target="4" data-suffix="+ hrs" data-decimal="0">
+        <div class="stat-icon" aria-hidden="true">⏱</div>
+        <div class="stat-num" id="stat1">0</div>
+        <div class="stat-suffix">+ hours</div>
+        <div class="stat-label">average hospital wait time for basic medication</div>
+      </div>
+      <div class="stat-card reveal-item" data-target="3.2" data-suffix="M" data-decimal="1">
+        <div class="stat-icon" aria-hidden="true">🏘</div>
+        <div class="stat-num" id="stat2">0</div>
+        <div class="stat-suffix">million</div>
+        <div class="stat-label">rural patients lack convenient medication access</div>
+      </div>
+      <div class="stat-card reveal-item" data-target="67" data-suffix="%" data-decimal="0">
+        <div class="stat-icon" aria-hidden="true">💊</div>
+        <div class="stat-num" id="stat3">0</div>
+        <div class="stat-suffix">%</div>
+        <div class="stat-label">of minor cases don't require a hospital visit at all</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOLUTION ===== -->
+<section id="solution" class="section section-alt" aria-labelledby="solutionTitle">
+  <div class="section-wrap">
+    <div class="section-badge">The Solution</div>
+    <h2 class="section-title" id="solutionTitle">DoseBot: Five Pillars of Precision</h2>
+    <p class="section-sub">A community kiosk that merges LabVIEW control, computer vision, and cloud connectivity into one seamless dispensing experience.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card reveal-item">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <h3 class="feature-title">LabVIEW / DAQ Control</h3>
+        <p class="feature-desc">NI DAQ card drives servo motors with deterministic timing, ensuring accurate single-pill dispensing on every cycle.</p>
+      </div>
+      <div class="feature-card reveal-item">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+        </div>
+        <h3 class="feature-title">Computer Vision Verification</h3>
+        <p class="feature-desc">Python + OpenCV webcam pipeline verifies pill color, shape, and count in real-time, logging rogue pills instantly.</p>
+      </div>
+      <div class="feature-card reveal-item">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <h3 class="feature-title">Environmental Monitoring</h3>
+        <p class="feature-desc">LM35 temperature and humidity sensors keep the medicine storage zone within safe parameters, triggering alerts when thresholds are breached.</p>
+      </div>
+      <div class="feature-card reveal-item">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6M18 2v6M6 22v-6M18 22v-6M2 12h4M18 12h4M6 8h12v8H6z"/></svg>
+        </div>
+        <h3 class="feature-title">Strain Gauge Detection</h3>
+        <p class="feature-desc">Custom Wheatstone bridge strain gauge confirms correct bottle placement before any dispense cycle begins — zero false triggers.</p>
+      </div>
+      <div class="feature-card reveal-item">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="feature-title">Sinhala Voice Chatbot</h3>
+        <p class="feature-desc">AWS Bedrock + Lex powered voice assistant supports patients in Sinhala, enabling doctor consultations directly at the kiosk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TECHNOLOGY ===== -->
+<section id="technology" class="section" aria-labelledby="techTitle">
+  <div class="section-wrap">
+    <div class="section-badge">Technology Stack</div>
+    <h2 class="section-title" id="techTitle">Built on Proven Infrastructure</h2>
+    <p class="section-sub">Industrial-grade tools meet open-source agility — from LabVIEW DAQ to cloud AI.</p>
+
+    <div class="tech-grid">
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">⚙️</div>
+        <div class="tech-name">LabVIEW + NI DAQ</div>
+        <div class="tech-sub">Real-time control</div>
+      </div>
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">🔌</div>
+        <div class="tech-name">Arduino / ESP32</div>
+        <div class="tech-sub">Edge processing</div>
+      </div>
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">👁</div>
+        <div class="tech-name">Python OpenCV</div>
+        <div class="tech-sub">Vision pipeline</div>
+      </div>
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">🔥</div>
+        <div class="tech-name">Firebase RTDB</div>
+        <div class="tech-sub">Live cloud sync</div>
+      </div>
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">🤖</div>
+        <div class="tech-name">AWS Bedrock</div>
+        <div class="tech-sub">Gen AI chatbot</div>
+      </div>
+      <div class="tech-item reveal-item">
+        <div class="tech-icon" aria-hidden="true">⚖️</div>
+        <div class="tech-name">Strain Gauge</div>
+        <div class="tech-sub">Bottle detection</div>
+      </div>
+    </div>
+
+    <!-- System architecture flow -->
+    <div class="arch-flow" aria-label="System architecture flow">
+      <div class="arch-node">Patient / Web</div>
+      <div class="arch-arrow" aria-hidden="true">→</div>
+      <div class="arch-node arch-node-accent">LabVIEW</div>
+      <div class="arch-arrow" aria-hidden="true">→</div>
+      <div class="arch-node">NI DAQ</div>
+      <div class="arch-arrow" aria-hidden="true">→</div>
+      <div class="arch-node">Sensors + Servo</div>
+      <div class="arch-arrow" aria-hidden="true">↕</div>
+      <div class="arch-node arch-node-accent">Firebase Cloud</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIVE DASHBOARD ===== -->
+<section id="dashboard" class="section section-alt" aria-labelledby="dashTitle">
+  <div class="section-wrap">
+    <div class="dash-header">
+      <div>
+        <div class="section-badge">Live Data</div>
+        <h2 class="section-title" id="dashTitle">System Dashboard</h2>
+      </div>
+      <div class="dash-meta">
+        <div class="powered-badge" aria-label="Powered by LabVIEW and Firebase">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Powered by LabVIEW + Firebase
+        </div>
+        <div class="system-state-badge" id="dashStateBadge" aria-live="polite">
+          <span class="state-dot"></span>
+          <span class="state-text" id="dashStateText">Connecting…</span>
+        </div>
+        <button class="sim-btn" id="simulateBtn" aria-label="Toggle data simulation">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Simulate
+        </button>
+        <div class="last-sync" id="lastSync" aria-live="polite">Last synced: —</div>
+      </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="metric-grid">
+      <div class="metric-card" id="mcard-temp" aria-label="Temperature reading">
+        <div class="metric-icon-wrap ic-teal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <div class="metric-num" id="mTempVal">--</div>
+        <div class="metric-unit">°C</div>
+        <div class="metric-lbl">Temperature</div>
+        <div class="temp-alert" id="tempAlert" hidden>⚠ Temp Alert</div>
+        <div class="metric-prog"><div class="metric-bar bar-teal" id="mTempBar" style="width:0%"></div></div>
+      </div>
+      <div class="metric-card" aria-label="Humidity reading">
+        <div class="metric-icon-wrap ic-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div class="metric-num" id="mHumVal">--</div>
+        <div class="metric-unit">%</div>
+        <div class="metric-lbl">Humidity</div>
+        <div class="metric-prog"><div class="metric-bar bar-blue" id="mHumBar" style="width:0%"></div></div>
+      </div>
+      <div class="metric-card" aria-label="Bottle weight reading">
+        <div class="metric-icon-wrap ic-green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><path d="M6.5 8h11l1 13H5.5z"/></svg>
+        </div>
+        <div class="metric-num" id="mWeightVal">--</div>
+        <div class="metric-unit">g</div>
+        <div class="metric-lbl">Bottle Weight</div>
+        <div class="metric-prog"><div class="metric-bar bar-green" id="mWeightBar" style="width:0%"></div></div>
+      </div>
+      <div class="metric-card" aria-label="Pill count reading">
+        <div class="metric-icon-wrap ic-amber">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        </div>
+        <div class="metric-num" id="mCountVal">--</div>
+        <div class="metric-unit">pills</div>
+        <div class="metric-lbl">Pill Count</div>
+        <div class="metric-prog"><div class="metric-bar bar-amber" id="mCountBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- LED Status Indicators -->
+    <div class="led-row">
+      <div class="led-item">
+        <div class="led-dot" id="led-bottle-dot"></div>
+        <div class="led-body">
+          <div class="led-lbl">Bottle Present</div>
+          <div class="led-val" id="led-bottle-val">Unknown</div>
+        </div>
+      </div>
+      <div class="led-item">
+        <div class="led-dot" id="led-temp-dot"></div>
+        <div class="led-body">
+          <div class="led-lbl">Temp Safe</div>
+          <div class="led-val" id="led-temp-val">Checking…</div>
+        </div>
+      </div>
+      <div class="led-item">
+        <div class="led-dot" id="led-ready-dot"></div>
+        <div class="led-body">
+          <div class="led-lbl">Ready to Dispense</div>
+          <div class="led-val" id="led-ready-val">Waiting…</div>
+        </div>
+      </div>
+      <div class="led-item">
+        <div class="led-dot" id="led-fan-dot"></div>
+        <div class="led-body">
+          <div class="led-lbl">Fan Active</div>
+          <div class="led-val" id="led-fan-val">Checking…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart + Dispense Log -->
+    <div class="dash-two-col">
+      <div class="dash-card">
+        <div class="dash-card-hd">
+          <h3 class="dash-card-title">Live Temperature Trend</h3>
+          <div class="chart-legend" aria-hidden="true">
+            <span class="lgd-dot" style="background:var(--accent)"></span>Temp
+            <span class="lgd-dot" style="background:#ef4444;margin-left:10px"></span>28°C
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="tempChart" aria-label="Live temperature trend chart"></canvas></div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-hd">
+          <h3 class="dash-card-title">Dispense Log</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="badge-pill" id="dispenseCountBadge">0 events</span>
+            <button class="csv-btn" id="csvExportBtn" aria-label="Download dispense log as CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              CSV
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtbl" aria-label="Dispense event log">
+            <thead><tr><th>#</th><th>Timestamp</th><th>Medicine</th><th>Pills</th></tr></thead>
+            <tbody id="dispenseTbody">
+              <tr><td colspan="4" class="empty-td">No events yet — waiting for data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== TEAM ===== -->
+<section id="team" class="section" aria-labelledby="teamTitle">
+  <div class="section-wrap">
+    <div class="section-badge">The Team</div>
+    <h2 class="section-title" id="teamTitle">Group 29 · EE Batch 23</h2>
+    <p class="section-sub">Department of Electrical Engineering, University of Moratuwa, Sri Lanka</p>
+
+    <div class="team-grid">
+      <div class="team-card reveal-left">
+        <div class="team-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <div class="team-name">S.V.C.H. Vithanage</div>
+        <div class="team-id">230675D</div>
+        <div class="team-role">Hardware & Sensor Design</div>
+        <div class="team-desc">Custom strain gauge Wheatstone bridge, LM35 temp/humidity circuit, IR reflectance sensor, kiosk structural design.</div>
+      </div>
+      <div class="team-card reveal-up">
+        <div class="team-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div class="team-name">H.H. Vithanage</div>
+        <div class="team-id">230671L</div>
+        <div class="team-role">LabVIEW DAQ Control</div>
+        <div class="team-desc">LabVIEW master controller, NI DAQ card integration, servo motor dispensing logic, Firebase data push pipeline.</div>
+      </div>
+      <div class="team-card reveal-right">
+        <div class="team-avatar" aria-hidden="true" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <div class="team-name">N.M.S.U. Weerakoon</div>
+        <div class="team-id">230691X</div>
+        <div class="team-role">CV & Web Interface</div>
+        <div class="team-desc">Python OpenCV pill verification, AWS Bedrock chatbot, Firebase web dashboard, QR-code smartphone access.</div>
+      </div>
+    </div>
+
+    <div class="supervisor-row">
+      <div class="supervisor-badge">
+        🎓 Supervised by <strong>Dr. Logeesan</strong> · Department of Electrical Engineering, University of Moratuwa
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner section-wrap">
+    <div class="footer-brand">
+      <div class="brand-icon" aria-hidden="true" style="color:var(--accent)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" fill="currentColor" opacity="0.2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16" r="2.2" fill="currentColor"/></svg>
+      </div>
+      <span style="font-family:'Sora',sans-serif;font-weight:700;color:var(--text-primary)">DoseBot</span>
+    </div>
+    <div class="footer-mid">
+      EE2044 Project · University of Moratuwa · Department of Electrical Engineering
+    </div>
+    <div class="footer-copy">
+      © 2026 DoseBot — EE2044 Project, University of Moratuwa. Built by Group 29.
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts: shader first, then app -->
+<script src="shader.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
