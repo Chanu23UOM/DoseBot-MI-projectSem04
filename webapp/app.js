@@ -112,6 +112,8 @@ function bootApp() {
   initPrescriptionForm();
   initChatbot();
   initCsvBtns();
+  initDetailsToggle();
+  initFab();
   renderDispenseTable();
   loadUserProfile();
   if (!CHATBOT_API_URL) document.getElementById('chatApiNote')?.removeAttribute('hidden');
@@ -136,6 +138,7 @@ function initSidebar() {
       document.querySelectorAll('.section-view').forEach(v => v.classList.remove('active'));
       document.getElementById(`view-${sec}`)?.classList.add('active');
       setText('topbarTitle', SECTION_TITLES[sec] || 'DoseBot');
+      updateFabVisibility(sec);
       closeSidebar();
     });
   });
@@ -214,6 +217,30 @@ function updateSystemBadge(d) {
   setText('systemBadgeText',   s.text);
 }
 
+// ===== AT-A-GLANCE HERO STATUS =====
+const HERO_STATES = {
+  connecting: { cls:'state-connecting', emoji:'○', text:'Connecting to DoseBot…', sub:'Waiting for live sensor data' },
+  ok:         { cls:'state-ok',         emoji:'✓', text:'All Systems Nominal',     sub:'Your meds are safe and secure.' },
+  busy:       { cls:'state-busy',       emoji:'◌', text:'Dispensing in Progress…', sub:'Please collect your medication at the kiosk.' },
+  danger:     { cls:'state-danger',     emoji:'!', text:'Warning: High Temperature', sub:'Cooling engaged to protect your medication.' },
+};
+
+function updateHero(d) {
+  let key;
+  if (!d)                          key = 'connecting';
+  else if (d.temp > TEMP_THRESHOLD) key = 'danger';
+  else if (d.bottle === 1 && d.ready === 1) key = 'busy';
+  else                              key = 'ok';
+
+  const s = HERO_STATES[key];
+  const ring = document.getElementById('heroRing');
+  if (ring) ring.className = 'hero-ring ' + s.cls;
+  setText('heroEmoji', s.emoji);
+  setText('heroTemp',  d ? (typeof d.temp === 'number' ? d.temp.toFixed(1) : '--') : '--');
+  setText('heroText',  s.text);
+  setText('heroSub',   s.sub);
+}
+
 // ===== METRIC CARDS =====
 function updateMetricCards(d) {
   animateNumber(document.getElementById('mTempVal'),   d.temp,     1);
@@ -274,8 +301,8 @@ function initTempChart() {
     data: {
       labels: [],
       datasets: [
-        { label:'Temperature (°C)', data:[], borderColor:'#0d9488', backgroundColor:'rgba(13,148,136,0.07)',
-          borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#0d9488', pointBorderColor:'rgba(11,17,32,1)',
+        { label:'Temperature (°C)', data:[], borderColor:'#0d9488', backgroundColor:'rgba(13,148,136,0.08)',
+          borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#0d9488', pointBorderColor:'#ffffff',
           pointBorderWidth:1.5, fill:true, tension:0.42 },
         { label:'28°C Threshold', data:[], borderColor:'#ef4444', borderWidth:2,
           borderDash:[6,5], pointRadius:0, fill:false, tension:0 }
@@ -287,15 +314,15 @@ function initTempChart() {
       plugins:{
         legend:{ display:false },
         tooltip:{
-          backgroundColor:'rgba(19,29,46,0.95)', padding:10, cornerRadius:8,
+          backgroundColor:'rgba(28,37,54,0.95)', padding:10, cornerRadius:8,
           callbacks:{ label: c => ` ${c.dataset.label}: ${Number(c.parsed.y).toFixed(1)}` }
         }
       },
       scales:{
-        x:{ grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ maxTicksLimit:6, font:{size:10}, color:'#4e6077' } },
+        x:{ grid:{ color:'rgba(20,30,50,0.06)' }, ticks:{ maxTicksLimit:6, font:{size:10}, color:'#8696ad' } },
         y:{ suggestedMin:15, suggestedMax:36,
-            grid:{ color:'rgba(255,255,255,0.04)' },
-            ticks:{ font:{size:10}, color:'#4e6077', callback: v => v+'°C' } }
+            grid:{ color:'rgba(20,30,50,0.06)' },
+            ticks:{ font:{size:10}, color:'#8696ad', callback: v => v+'°C' } }
       },
       animation:{ duration:300 }
     }
@@ -393,10 +420,40 @@ function initCsvBtns() {
   document.getElementById('csvBtnLog')?.addEventListener('click',  exportCSV);
 }
 
+// ===== PROGRESSIVE DISCLOSURE (View Details) =====
+function initDetailsToggle() {
+  const btn     = document.getElementById('detailsToggle');
+  const details = document.getElementById('dashDetails');
+  const label   = document.getElementById('detailsToggleLabel');
+  if (!btn || !details) return;
+  btn.addEventListener('click', () => {
+    const open = details.hasAttribute('hidden');
+    if (open) details.removeAttribute('hidden');
+    else      details.setAttribute('hidden', '');
+    btn.setAttribute('aria-expanded', String(open));
+    if (label) label.textContent = open ? 'Hide Details' : 'View Details';
+    if (open) details.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+}
+
+// ===== FLOATING ACTION BUTTON =====
+function initFab() {
+  document.getElementById('fabNewRx')?.addEventListener('click', () => {
+    document.querySelector('.nav-item[data-section="prescription"]')?.click();
+    document.getElementById('rxPatient')?.focus();
+  });
+}
+
+// Hide the FAB while the Prescription view is already open
+function updateFabVisibility(sec) {
+  document.getElementById('fabNewRx')?.classList.toggle('hidden', sec === 'prescription');
+}
+
 // ===== MAIN DATA PROCESSOR =====
 function processData(d) {
   state.latestData   = d;
   state.lastDataTime = Date.now();
+  updateHero(d);
   updateMetricCards(d);
   updateLEDs(d);
   updateSystemBadge(d);

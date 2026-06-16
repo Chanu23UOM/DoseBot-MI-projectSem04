@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="theme-color" content="#f4f6fb">
 
   <!-- Firebase compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -123,6 +123,25 @@
         </div>
       </div>
 
+      <!-- ===== AT-A-GLANCE HERO ===== -->
+      <div class="hero-status" id="heroStatus">
+        <div class="hero-ring state-connecting" id="heroRing">
+          <div class="hero-ring-inner">
+            <div class="hero-emoji" id="heroEmoji">○</div>
+            <div class="hero-temp"><span id="heroTemp">--</span>°C</div>
+          </div>
+        </div>
+        <div class="hero-text" id="heroText">Connecting to DoseBot…</div>
+        <div class="hero-sub" id="heroSub">Waiting for live sensor data</div>
+        <button class="details-toggle" id="detailsToggle" aria-expanded="false" aria-controls="dashDetails">
+          <span id="detailsToggleLabel">View Details</span>
+          <svg id="detailsChevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      <!-- ===== DETAILS (progressive disclosure) ===== -->
+      <div class="dash-details" id="dashDetails" hidden>
+
       <!-- Metric cards -->
       <div class="metric-grid">
         <div class="metric-card" id="mcard-temp" aria-label="Temperature">
@@ -229,6 +248,8 @@
           </div>
         </div>
       </div>
+
+      </div><!-- /.dash-details -->
     </section>
 
     <!-- ===== DISPENSE LOG ===== -->
@@ -468,6 +489,12 @@
 
   </main>
 </div>
+
+<!-- Floating action button — quick New Prescription -->
+<button class="fab" id="fabNewRx" aria-label="New Prescription">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+  <span class="fab-label">New Prescription</span>
+</button>
 
 <script src="app.js"></script>
 </body>
