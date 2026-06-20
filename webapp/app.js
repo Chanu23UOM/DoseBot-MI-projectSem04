@@ -15,7 +15,7 @@ const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
    The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
    gr.Interface default ('/predict'); the image is sent positionally. */
 const OCR_HF_SPACE = 'Chanu2003/DoseBotV2';
-const OCR_ENDPOINT = '/classify_image_gradio';
+const OCR_ENDPOINT = '/predict_medicine';
 
 // ===== FIREBASE CONFIG (same as auth.js) =====
 const FIREBASE_CONFIG = {
