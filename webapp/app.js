@@ -15,7 +15,7 @@ const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
    The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
    gr.Interface default ('/predict'); the image is sent positionally. */
 const OCR_HF_SPACE = 'Chanu2003/DoseBotV1';
-const OCR_ENDPOINT = '/predict';
+const OCR_ENDPOINT = '/classify_image_gradio';
 
 // ===== FIREBASE CONFIG (same as auth.js) =====
 const FIREBASE_CONFIG = {
@@ -661,10 +661,28 @@ function initPrescriptionCam() {
     const ip = state.espCamIp;
     if (!ip) return;
     await readPrescription(async () => {
-      // Grab a still JPEG from the ESP32-CAM (needs CORS header on the firmware)
-      const res = await fetch(`http://${ip}/capture`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`camera /capture returned ${res.status}`);
-      return res.blob();
+      // The ESP32-CAM shares one frame buffer between the stream (port 81) and
+      // /capture (port 80). Stop the stream and let the camera free up, or
+      // /capture gets starved and hangs.
+      const liveSrc = stream.src;
+      stream.removeAttribute('src');
+      await new Promise(r => setTimeout(r, 500));
+
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000); // don't hang forever
+      try {
+        const res = await fetch(`http://${ip}/capture?_=${Date.now()}`, {
+          cache: 'no-store', signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`camera /capture returned ${res.status}`);
+        return await res.blob();
+      } catch (e) {
+        if (e.name === 'AbortError') throw new Error('camera /capture timed out (camera busy — power-cycle the ESP32)');
+        throw e;
+      } finally {
+        clearTimeout(timer);
+        stream.src = liveSrc; // resume the live view
+      }
     });
   });
 
@@ -697,11 +715,11 @@ async function readPrescription(getBlob) {
     }
 
     // Send it to the Donut OCR model hosted on a Hugging Face Space.
-    // The gr.Interface takes one image input (positional) and returns
-    // [extractedText, predictedLabel, confidence].
+    // Endpoint /classify_image_gradio takes a named `image` arg and returns
+    // [extractedText, predictedLabel, confidence]. (@gradio/client accepts a Blob directly.)
     const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
     const client = await Client.connect(OCR_HF_SPACE);
-    const result = await client.predict(OCR_ENDPOINT, [blob]);
+    const result = await client.predict(OCR_ENDPOINT, { image: blob });
 
     const [text, label, confidence] = Array.isArray(result?.data) ? result.data : [result?.data];
     typingEl.remove();
@@ -709,7 +727,10 @@ async function readPrescription(getBlob) {
     appendChatMsg('bot', `📝 Prescription reading:\n${text || '(no text detected)'}${note}`);
   } catch (err) {
     typingEl.remove();
-    appendChatMsg('bot', `Could not read the prescription: ${err.message}.`);
+    const hint = /failed to fetch|networkerror|load failed/i.test(err.message)
+      ? ' This usually means the ESP32-CAM is missing the "Access-Control-Allow-Origin" CORS header in its firmware, or you are not on the same WiFi.'
+      : '';
+    appendChatMsg('bot', `Could not read the prescription: ${err.message}.${hint}`);
   } finally {
     state.chatWaiting = false;
     if (captureBtn) captureBtn.disabled = false;
