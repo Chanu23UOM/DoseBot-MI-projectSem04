@@ -11,6 +11,12 @@
 
 const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
 
+/* ===== PRESCRIPTION OCR via Hugging Face Space + ESP32-CAM =====
+   The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
+   gr.Interface default ('/predict'); the image is sent positionally. */
+const OCR_HF_SPACE = 'Chanu2003/DoseBotV1';
+const OCR_ENDPOINT = '/classify_image_gradio';
+
 // ===== FIREBASE CONFIG (same as auth.js) =====
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAY5EOTQQ-RDYlXqmFEZ3VhIKpXlDv3es8",
@@ -47,6 +53,7 @@ const state = {
   tempChart:        null,
   chatHistory:      [],
   chatWaiting:      false,
+  espCamIp:         '',
 };
 
 // ===== UTILS =====
@@ -111,6 +118,7 @@ function bootApp() {
   initTempChart();
   initPrescriptionForm();
   initChatbot();
+  initPrescriptionCam();
   initCsvBtns();
   initDetailsToggle();
   initFab();
@@ -621,6 +629,113 @@ function initChatbot() {
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 140) + 'px';
   });
+}
+
+// ===== ESP32-CAM / UPLOAD PRESCRIPTION SCANNER =====
+function initPrescriptionCam() {
+  const ipInput    = document.getElementById('espIp');
+  const connectBtn = document.getElementById('camConnectBtn');
+  const captureBtn = document.getElementById('captureReadBtn');
+  const stream     = document.getElementById('espStream');
+  const placeholder= document.getElementById('camPlaceholder');
+  const fileInput  = document.getElementById('prescFile');
+  const uploadBtn  = document.getElementById('uploadReadBtn');
+  if (!ipInput) return;
+
+  connectBtn?.addEventListener('click', () => {
+    const ip = ipInput.value.trim();
+    if (!ip) return;
+    state.espCamIp = ip;
+    stream.src = `http://${ip}:81/stream`;   // CameraWebServer MJPEG stream
+    stream.hidden = false;
+    if (placeholder) placeholder.hidden = true;
+    captureBtn.disabled = false;
+  });
+
+  stream?.addEventListener('error', () => {
+    appendChatMsg('bot', `Could not reach the camera stream at ${state.espCamIp}. Check the IP and that you are on the same WiFi.`);
+  });
+
+  // Read from the ESP32-CAM
+  captureBtn?.addEventListener('click', async () => {
+    const ip = state.espCamIp;
+    if (!ip) return;
+    await readPrescription(async () => {
+      // The ESP32-CAM shares one frame buffer between the stream (port 81) and
+      // /capture (port 80). Stop the stream and let the camera free up, or
+      // /capture gets starved and hangs.
+      const liveSrc = stream.src;
+      stream.removeAttribute('src');
+      await new Promise(r => setTimeout(r, 500));
+
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000); // don't hang forever
+      try {
+        const res = await fetch(`http://${ip}/capture?_=${Date.now()}`, {
+          cache: 'no-store', signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`camera /capture returned ${res.status}`);
+        return await res.blob();
+      } catch (e) {
+        if (e.name === 'AbortError') throw new Error('camera /capture timed out (camera busy — power-cycle the ESP32)');
+        throw e;
+      } finally {
+        clearTimeout(timer);
+        stream.src = liveSrc; // resume the live view
+      }
+    });
+  });
+
+  // Read from an uploaded / phone-camera photo (no ESP32 needed)
+  uploadBtn?.addEventListener('click', async () => {
+    const file = fileInput?.files?.[0];
+    if (!file) { appendChatMsg('bot', 'Please choose an image first.'); return; }
+    await readPrescription(async () => file);
+  });
+}
+
+// Shared OCR pipeline: `getBlob()` supplies the image (ESP32 capture or upload).
+async function readPrescription(getBlob) {
+  if (state.chatWaiting) return;
+  const captureBtn = document.getElementById('captureReadBtn');
+  const uploadBtn  = document.getElementById('uploadReadBtn');
+
+  state.chatWaiting = true;
+  if (captureBtn) captureBtn.disabled = true;
+  if (uploadBtn)  uploadBtn.disabled  = true;
+  const typingEl = appendTypingIndicator();
+
+  try {
+    const blob = await getBlob();
+
+    if (!OCR_HF_SPACE) {
+      typingEl.remove();
+      appendChatMsg('bot', 'Got the image, but the OCR model is not configured yet. Set OCR_HF_SPACE in app.js to your Hugging Face Space.');
+      return;
+    }
+
+    // Send it to the Donut OCR model hosted on a Hugging Face Space.
+    // Endpoint /classify_image_gradio takes a named `image` arg and returns
+    // [extractedText, predictedLabel, confidence]. (@gradio/client accepts a Blob directly.)
+    const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
+    const client = await Client.connect(OCR_HF_SPACE);
+    const result = await client.predict(OCR_ENDPOINT, { image: blob });
+
+    const [text, label, confidence] = Array.isArray(result?.data) ? result.data : [result?.data];
+    typingEl.remove();
+    const note = label ? `\n(${label}${confidence != null ? `, ${Math.round(confidence * 100)}%` : ''})` : '';
+    appendChatMsg('bot', `📝 Prescription reading:\n${text || '(no text detected)'}${note}`);
+  } catch (err) {
+    typingEl.remove();
+    const hint = /failed to fetch|networkerror|load failed/i.test(err.message)
+      ? ' This usually means the ESP32-CAM is missing the "Access-Control-Allow-Origin" CORS header in its firmware, or you are not on the same WiFi.'
+      : '';
+    appendChatMsg('bot', `Could not read the prescription: ${err.message}.${hint}`);
+  } finally {
+    state.chatWaiting = false;
+    if (captureBtn) captureBtn.disabled = false;
+    if (uploadBtn)  uploadBtn.disabled  = false;
+  }
 }
 
 async function sendChat() {
