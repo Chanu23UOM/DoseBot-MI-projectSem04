@@ -811,6 +811,7 @@ function appendChatMsg(role, text) {
   // Remove welcome message on first real message
   const welcome = win.querySelector('.chat-welcome');
   if (welcome) welcome.remove();
+  document.getElementById('chatLayout')?.classList.remove('chat-empty');
 
   const wrap = document.createElement('div');
   wrap.className = `chat-msg ${role}`;

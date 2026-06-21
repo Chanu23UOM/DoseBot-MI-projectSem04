@@ -828,6 +828,20 @@ body.app-page::before {
   display: flex; flex-direction: column;
   height: calc(100vh - var(--topbar-h) - 80px);
   min-height: 500px;
+  transition: max-width var(--t);
+}
+/* Empty-state: centre the welcome card + input box together in the
+   middle of the page, like a hero composer, instead of pinning the
+   input to the bottom of a mostly-empty chat window. */
+.chat-layout.chat-empty {
+  justify-content: center;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+.chat-layout.chat-empty .chat-window {
+  flex: 0 1 auto;
+  max-height: 60vh;
 }
 .chat-window {
   flex: 1; overflow-y: auto;
