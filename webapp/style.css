@@ -876,7 +876,7 @@ img { display: block; max-width: 100%; }
 
 .chat-layout {
   display: flex; flex-direction: column;
-  height: calc(100vh - var(--topbar-h) - 160px);
+  height: calc(100vh - var(--topbar-h) - 80px);
   min-height: 500px;
 }
 .chat-window {
@@ -1097,7 +1097,7 @@ img { display: block; max-width: 100%; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .led-row { grid-template-columns: repeat(2, 1fr); }
   .auth-card { padding: 28px 24px 22px; }
-  .chat-layout { height: calc(100vh - var(--topbar-h) - 200px); }
+  .chat-layout { height: calc(100vh - var(--topbar-h) - 100px); }
   .hero-ring { width: 200px; height: 200px; }
   .hero-ring-inner { width: 158px; height: 158px; }
   .hero-emoji { font-size: 3rem; }

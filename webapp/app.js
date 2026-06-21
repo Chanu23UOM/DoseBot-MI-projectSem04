@@ -138,6 +138,7 @@ const SECTION_TITLES = {
   'dashboard':    'Dashboard',
   'dispense-log': 'Dispense Log',
   'prescription': 'Prescription',
+  'scanner':      'Scanner',
   'chatbot':      'AI Chatbot',
   'profile':      'Profile',
 };
