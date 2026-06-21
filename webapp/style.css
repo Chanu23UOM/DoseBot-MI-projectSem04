@@ -212,6 +212,19 @@ img { display: block; max-width: 100%; }
   min-height: 100vh;
 }
 
+/* Animated green-tinted gradient + healthcare pattern behind the whole app */
+body.app-page::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 45% at 10% 8%,  rgba(13,148,136,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 92% 92%, rgba(16,185,129,0.09) 0%, transparent 60%),
+    url('assets/healthcare_bg_pattern.png');
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-size: auto, auto, 320px auto;
+  animation: authBg 18s ease-in-out infinite alternate;
+}
+
 /* ===== SIDEBAR ===== */
 .sidebar {
   width: var(--sidebar-w);
@@ -823,9 +836,15 @@ img { display: block; max-width: 100%; }
   background-image: url('assets/healthcare_bg_pattern.png');
   background-repeat: repeat;
   background-size: 280px auto;
+  background-position: 0 0;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
+  animation: chatBgPan 45s linear infinite;
+}
+@keyframes chatBgPan {
+  from { background-position: 0 0; }
+  to   { background-position: 280px 0; }
 }
 .chat-msg {
   display: flex; gap: 10px; align-items: flex-start;
