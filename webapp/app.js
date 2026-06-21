@@ -765,7 +765,7 @@ async function sendChat() {
       const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
       const client = await Client.connect(CHATBOT_HF_SPACE);
       const historyJson = JSON.stringify(state.chatHistory.slice(-10));
-      const result = await client.predict('/chat', {
+      const result = await client.predict('/predict', {
         message: msg,
         history: historyJson,
       });
