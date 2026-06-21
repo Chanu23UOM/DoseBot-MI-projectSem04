@@ -11,6 +11,12 @@
 
 const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
 
+/* ===== AI CHATBOT via Hugging Face Space =====
+   A separate Gradio Space that proxies chat to an open-source medical LLM
+   via the HF Inference API. Deploy chatbot-space/ to HF and set the ID below.
+   Leave empty to use CHATBOT_API_URL or built-in placeholders. */
+const CHATBOT_HF_SPACE = 'Chanu2003/DoseBot-Chatbot';
+
 /* ===== PRESCRIPTION OCR via Hugging Face Space + ESP32-CAM =====
    The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
    gr.Interface default ('/predict'); the image is sent positionally. */
@@ -124,7 +130,7 @@ function bootApp() {
   initFab();
   renderDispenseTable();
   loadUserProfile();
-  if (!CHATBOT_API_URL) document.getElementById('chatApiNote')?.removeAttribute('hidden');
+  if (!CHATBOT_HF_SPACE && !CHATBOT_API_URL) document.getElementById('chatApiNote')?.removeAttribute('hidden');
 }
 
 // ===== SIDEBAR NAVIGATION =====
@@ -753,7 +759,20 @@ async function sendChat() {
 
   try {
     let reply;
-    if (CHATBOT_API_URL) {
+
+    if (CHATBOT_HF_SPACE) {
+      // ---- HF Space via @gradio/client (same pattern as OCR) ----
+      const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
+      const client = await Client.connect(CHATBOT_HF_SPACE);
+      const historyJson = JSON.stringify(state.chatHistory.slice(-10));
+      const result = await client.predict('/chat', {
+        message: msg,
+        history: historyJson,
+      });
+      reply = (Array.isArray(result?.data) ? result.data[0] : result?.data) || 'No response from the AI model.';
+
+    } else if (CHATBOT_API_URL) {
+      // ---- Legacy: direct REST API ----
       const res = await fetch(CHATBOT_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -762,16 +781,22 @@ async function sendChat() {
       if (!res.ok) throw new Error(`API ${res.status}`);
       const data = await res.json();
       reply = data.reply || data.message || data.content || 'No response from API.';
+
     } else {
+      // ---- Placeholder (demo mode) ----
       await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
       reply = PLACEHOLDER_RESPONSES[placeholderIdx++ % PLACEHOLDER_RESPONSES.length];
     }
+
     state.chatHistory.push({ role:'assistant', content: reply });
     typingEl.remove();
     appendChatMsg('bot', reply);
   } catch (err) {
     typingEl.remove();
-    appendChatMsg('bot', `Error: ${err.message}. Check your API configuration.`);
+    const hint = /failed to fetch|networkerror|load failed/i.test(err.message)
+      ? ' The chatbot Space may be sleeping — visit it once on Hugging Face to wake it up.'
+      : '';
+    appendChatMsg('bot', `Error: ${err.message}.${hint}`);
   } finally {
     state.chatWaiting = false;
     document.getElementById('chatSendBtn').disabled = false;
