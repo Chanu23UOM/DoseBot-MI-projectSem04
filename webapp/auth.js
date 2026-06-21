@@ -1,12 +1,14 @@
 'use strict';
 /* =========================================================
    DoseBot Web App — auth.js
-   Firebase Authentication: Google + Email/Password
+   Firebase Authentication: Google Sign-In only
    ---------------------------------------------------------
    SETUP REQUIRED:
    1. Go to Firebase Console → your project → Project Settings
    2. Copy your web app config and paste below
-   3. Enable Authentication → Sign-in methods → Google + Email/Password
+   3. Enable Authentication → Sign-in method → Google
+   4. Authentication → Settings → Authorized domains → add every
+      domain this app is served from (localhost is included by default)
    ========================================================= */
 
 const FIREBASE_CONFIG = {
@@ -48,86 +50,20 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// ===== TABS =====
-document.querySelectorAll('.auth-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.auth-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
-    tab.classList.add('active');
-    tab.setAttribute('aria-selected','true');
-    const which = tab.dataset.tab;
-    document.getElementById('loginForm').classList.toggle('hidden',    which !== 'login');
-    document.getElementById('registerForm').classList.toggle('hidden', which !== 'register');
-    document.getElementById('loginError').textContent    = '';
-    document.getElementById('registerError').textContent = '';
-  });
-});
-
 // ===== GOOGLE SIGN-IN =====
 async function googleSignIn() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  const errEl = document.getElementById('loginError');
   try {
     const result = await auth.signInWithPopup(provider);
     await ensureUserProfile(result.user, {});
   } catch (err) {
+    if (errEl) errEl.textContent = friendlyError(err);
     showToast(friendlyError(err), 'error');
   }
 }
 
-document.getElementById('googleSignInBtn')?.addEventListener('click',  googleSignIn);
-document.getElementById('googleRegisterBtn')?.addEventListener('click', googleSignIn);
-
-// ===== EMAIL LOGIN =====
-document.getElementById('loginBtn')?.addEventListener('click', async () => {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  const btn   = document.getElementById('loginBtn');
-
-  if (!email || !pass) { errEl.textContent = 'Please enter email and password.'; return; }
-  errEl.textContent = '';
-  btn.classList.add('loading');
-  btn.textContent = 'Signing in…';
-
-  try {
-    await auth.signInWithEmailAndPassword(email, pass);
-  } catch (err) {
-    errEl.textContent = friendlyError(err);
-    btn.classList.remove('loading');
-    btn.textContent = 'Sign In';
-  }
-});
-
-// Enter key support for login
-document.getElementById('loginPassword')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('loginBtn')?.click();
-});
-
-// ===== EMAIL REGISTER =====
-document.getElementById('registerBtn')?.addEventListener('click', async () => {
-  const name  = document.getElementById('regName').value.trim();
-  const phone = document.getElementById('regPhone').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const pass  = document.getElementById('regPassword').value;
-  const errEl = document.getElementById('registerError');
-  const btn   = document.getElementById('registerBtn');
-
-  if (!name)  { errEl.textContent = 'Full name is required.'; return; }
-  if (!email) { errEl.textContent = 'Email is required.'; return; }
-  if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
-  errEl.textContent = '';
-  btn.classList.add('loading');
-  btn.textContent = 'Creating account…';
-
-  try {
-    const cred = await auth.createUserWithEmailAndPassword(email, pass);
-    await cred.user.updateProfile({ displayName: name });
-    await ensureUserProfile(cred.user, { name, phone });
-  } catch (err) {
-    errEl.textContent = friendlyError(err);
-    btn.classList.remove('loading');
-    btn.textContent = 'Create Account';
-  }
-});
+document.getElementById('googleSignInBtn')?.addEventListener('click', googleSignIn);
 
 // ===== SAVE USER PROFILE TO RTDB =====
 async function ensureUserProfile(user, extra) {
@@ -146,14 +82,11 @@ async function ensureUserProfile(user, extra) {
 // ===== ERROR MESSAGES =====
 function friendlyError(err) {
   const map = {
-    'auth/user-not-found':        'No account found with this email.',
-    'auth/wrong-password':        'Incorrect password.',
-    'auth/email-already-in-use':  'An account with this email already exists.',
-    'auth/invalid-email':         'Invalid email address.',
-    'auth/weak-password':         'Password must be at least 6 characters.',
-    'auth/popup-closed-by-user':  'Google sign-in was cancelled.',
-    'auth/network-request-failed':'Network error — check your connection.',
-    'auth/too-many-requests':     'Too many attempts. Try again later.',
+    'auth/popup-closed-by-user':    'Google sign-in was cancelled.',
+    'auth/popup-blocked':           'Your browser blocked the sign-in popup. Allow popups and try again.',
+    'auth/network-request-failed':  'Network error — check your connection.',
+    'auth/too-many-requests':       'Too many attempts. Try again later.',
+    'auth/unauthorized-domain':     'This domain is not authorized for Google sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains.',
     'auth/configuration-not-found': 'Firebase Auth not configured. Add your Firebase config in auth.js.',
   };
   return map[err.code] || err.message || 'An error occurred. Please try again.';

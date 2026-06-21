@@ -106,14 +106,17 @@ img { display: block; max-width: 100%; }
   position: relative; overflow: hidden;
 }
 
-/* Animated background gradient */
+/* Animated background gradient + subtle healthcare pattern */
 .auth-page::before {
   content: '';
   position: fixed; inset: 0; z-index: 0;
   background:
     radial-gradient(ellipse 70% 50% at 20% 30%, rgba(13,148,136,0.12) 0%, transparent 60%),
     radial-gradient(ellipse 60% 60% at 80% 70%, rgba(14,165,233,0.07) 0%, transparent 60%),
+    url('assets/healthcare_bg_pattern.png'),
     var(--bg);
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-size: auto, auto, 320px auto, auto;
   animation: authBg 14s ease-in-out infinite alternate;
 }
 @keyframes authBg {
@@ -162,26 +165,10 @@ img { display: block; max-width: 100%; }
   letter-spacing: -0.02em;
 }
 
-/* Tabs */
-.auth-tabs {
-  display: flex;
-  background: var(--surface-2);
-  border-radius: var(--r-sm);
-  padding: 4px;
-  margin-bottom: 24px;
-}
-.auth-tab {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 13px; font-weight: 600;
-  color: var(--text-muted);
-  transition: all var(--t);
-}
-.auth-tab.active {
-  background: var(--surface-3);
-  color: var(--text-primary);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+/* Google sign-in intro text */
+.auth-google-sub {
+  font-size: 13.5px; color: var(--text-secondary);
+  margin-bottom: 22px; line-height: 1.5;
 }
 
 /* Google button */
@@ -200,40 +187,6 @@ img { display: block; max-width: 100%; }
 .google-btn:hover { background: var(--surface-3); border-color: var(--border-2); transform: translateY(-1px); }
 .google-btn svg { flex-shrink: 0; }
 
-/* Divider */
-.auth-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 18px;
-  color: var(--text-muted); font-size: 12px;
-}
-.auth-divider::before, .auth-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--border);
-}
-
-/* Form fields */
-.form-field { margin-bottom: 14px; }
-.form-field label {
-  display: block; margin-bottom: 6px;
-  font-size: 12px; font-weight: 600; color: var(--text-secondary);
-  letter-spacing: 0.02em;
-}
-.form-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  font-size: 14px;
-  color: var(--text-primary);
-  transition: border-color var(--t), box-shadow var(--t);
-}
-.form-input::placeholder { color: var(--text-muted); }
-.form-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
-  outline: none;
-}
-
 /* Auth error */
 .auth-error {
   font-size: 12px; color: var(--danger);
@@ -241,23 +194,7 @@ img { display: block; max-width: 100%; }
   padding: 0 2px;
 }
 
-/* Submit button */
-.auth-submit-btn {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  border-radius: var(--r-md);
-  font-size: 14px; font-weight: 700;
-  color: white;
-  transition: all var(--t);
-  position: relative;
-}
-.auth-submit-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
-.auth-submit-btn:active { transform: translateY(0); }
-.auth-submit-btn.loading { pointer-events: none; opacity: 0.7; }
-
 .auth-form-wrap { animation: fadeIn 0.2s ease; }
-.auth-form-wrap.hidden { display: none; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .auth-back-link {
@@ -883,7 +820,10 @@ img { display: block; max-width: 100%; }
   flex: 1; overflow-y: auto;
   display: flex; flex-direction: column; gap: 16px;
   padding: 20px;
-  background: var(--surface);
+  background-image: url('assets/healthcare_bg_pattern.png');
+  background-repeat: repeat;
+  background-size: 280px auto;
+  background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
 }
@@ -898,7 +838,14 @@ img { display: block; max-width: 100%; }
   flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700;
 }
-.chat-msg.bot .chat-avatar   { background: var(--accent-light); color: var(--accent); }
+.chat-msg.bot .chat-avatar   {
+  background-image: url('assets/dosebot_pill_avatar.png');
+  background-size: cover; background-position: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: transparent;
+}
 .chat-msg.user .chat-avatar  { background: linear-gradient(135deg, var(--accent), #0ea5e9); color: white; }
 .chat-bubble {
   padding: 11px 15px;
@@ -953,11 +900,16 @@ img { display: block; max-width: 100%; }
   color: var(--text-muted);
 }
 .chat-welcome-icon {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--accent-light); color: var(--accent);
+  width: 72px; height: 72px; border-radius: var(--r-lg);
+  background-image: url('assets/dosebot_pill_avatar.png');
+  background-size: cover; background-position: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 14px; font-size: 24px;
 }
+.chat-welcome-icon svg { display: none; }
 .chat-welcome h3 { font-family: 'Sora',sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
 .chat-welcome p  { font-size: 13px; max-width: 320px; margin: 0 auto; }
 
@@ -1098,16 +1050,43 @@ img { display: block; max-width: 100%; }
   .led-row { grid-template-columns: repeat(2, 1fr); }
   .auth-card { padding: 28px 24px 22px; }
   .chat-layout { height: calc(100vh - var(--topbar-h) - 100px); }
+  .chat-msg { max-width: 86%; }
   .hero-ring { width: 200px; height: 200px; }
   .hero-ring-inner { width: 158px; height: 158px; }
   .hero-emoji { font-size: 3rem; }
   .hero-text { font-size: 1.3rem; }
   .fab { right: 18px; bottom: 18px; padding: 16px; }
   .fab-label { display: none; }
+  .nav-item, .logout-btn { padding: 12px 14px; font-size: 14px; }
+  .dash-toolbar { row-gap: 12px; }
+}
+
+@media (max-width: 600px) {
+  .topbar { padding: 0 14px; gap: 10px; }
+  .topbar-conn { display: none; }
+  .user-name { display: none; }
+  .topbar-title { font-size: 14px; }
+  .dash-toolbar-right { width: 100%; margin-left: 0; justify-content: space-between; }
+  .dash-toolbar { flex-direction: column; align-items: stretch; }
 }
 
 @media (max-width: 480px) {
-  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .metric-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-card { padding: 16px 14px 14px; }
+  .metric-num { font-size: 1.7rem; }
   .form-row { grid-template-columns: 1fr; }
   .prescription-layout { grid-template-columns: 1fr; }
+  .hero-ring { width: 168px; height: 168px; }
+  .hero-ring-inner { width: 130px; height: 130px; }
+  .hero-emoji { font-size: 2.4rem; }
+  .hero-text { font-size: 1.15rem; margin-top: 16px; }
+  .hero-sub { font-size: 13px; }
+  .chat-layout { height: calc(100vh - var(--topbar-h) - 90px); }
+  .chat-welcome-icon { width: 60px; height: 60px; }
+  .profile-avatar-wrap { width: 64px; height: 64px; font-size: 22px; }
+}
+
+@media (max-width: 360px) {
+  .metric-grid { grid-template-columns: 1fr; }
+  .led-row { grid-template-columns: 1fr; }
 }
