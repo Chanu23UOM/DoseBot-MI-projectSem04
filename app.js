@@ -333,11 +333,47 @@ function processData(d) {
 
 // ===== FIREBASE LISTENER =====
 function initFirebase() {
-  db.ref('/dosebot/Sensors').on(
-    'value',
-    snap => { const d = snap.val(); if (d && typeof d === 'object') processData(d); },
-    err  => { console.error('[DoseBot]', err.message); setConnectionStatus('offline'); }
+  // Merge data from multiple Firebase top-level paths
+  const merged = { temp: 0, humidity: 0, voltage: 0, bottle: 0, ready: 0, count: 0, weight: 0 };
+
+  // /Sensors → temp, humidity, voltage, bottle
+  db.ref('/Sensors').on('value',
+    snap => {
+      const s = snap.val();
+      if (!s || typeof s !== 'object') return;
+      merged.temp     = typeof s.temp === 'number' ? s.temp : 0;
+      merged.humidity  = typeof s.humidity === 'number' ? s.humidity : 0;
+      merged.voltage   = typeof s.voltage === 'number' ? s.voltage : 0;
+      merged.bottle    = s.bottle === 1 || s.bottle === true ? 1 : 0;
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Sensors:', err.message); setConnectionStatus('offline'); }
   );
+
+  // /status → bottle_present, ready, temp_safe
+  db.ref('/status').on('value',
+    snap => {
+      const s = snap.val();
+      if (!s || typeof s !== 'object') return;
+      const bottlePresent = s.bottle_present === 'true' || s.bottle_present === true;
+      merged.ready  = (s.ready === 'true' || s.ready === true) ? 1 : 0;
+      if (merged.bottle === 0 && bottlePresent) merged.bottle = 1;
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Status:', err.message); }
+  );
+
+  // /counters → pill_count, last_update
+  db.ref('/counters').on('value',
+    snap => {
+      const c = snap.val();
+      if (!c || typeof c !== 'object') return;
+      merged.count = typeof c.pill_count === 'number' ? c.pill_count : 0;
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Counters:', err.message); }
+  );
+
   db.ref('.info/connected').on('value', snap => {
     if (!snap.val()) setConnectionStatus(state.lastDataTime > 0 ? 'offline' : 'connecting');
   });

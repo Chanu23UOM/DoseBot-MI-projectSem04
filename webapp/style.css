@@ -238,6 +238,7 @@ body.app-page::before {
 
 .sidebar-logo {
   display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
   padding: 18px 20px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -559,7 +560,7 @@ body.app-page::before {
   50%      { box-shadow: 0 0 0 4px rgba(16,185,129,0.15); }
 }
 .metric-icon-wrap {
-  width: 32px; height: 32px; border-radius: 9px;
+  width: 38px; height: 38px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
 }
 .ic-teal  { background: var(--accent-light); color: var(--accent); }
@@ -1092,6 +1093,78 @@ body.app-page::before {
   .fab-label { display: none; }
   .nav-item, .logout-btn { padding: 12px 14px; font-size: 14px; }
   .dash-toolbar { row-gap: 12px; }
+}
+
+/* ===== PROJECT STATUS BADGE ===== */
+.project-status-badge {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+  padding: 3px 10px;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  color: var(--success);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.project-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  animation: statusPulse 2s ease infinite;
+  flex-shrink: 0;
+}
+@keyframes statusPulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(16,185,129,0.25); }
+  50%      { box-shadow: 0 0 0 5px rgba(16,185,129,0.05); }
+}
+
+/* ===== DISPENSE BUTTON ===== */
+.dispense-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 18px;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, var(--accent), #10b981);
+  border: none;
+  border-radius: var(--r-full);
+  box-shadow: 0 6px 24px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.08);
+  font-family: 'Sora', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.dispense-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.dispense-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 36px var(--accent-glow), 0 4px 14px rgba(0,0,0,0.12);
+}
+.dispense-btn:hover::before {
+  transform: translateX(100%);
+}
+.dispense-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.dispense-btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+.dispense-btn.dispensing {
+  animation: dispensePulse 1s ease infinite;
+}
+@keyframes dispensePulse {
+  0%,100% { box-shadow: 0 6px 24px var(--accent-glow); }
+  50%      { box-shadow: 0 6px 36px rgba(13,148,136,0.4); }
 }
 
 @media (max-width: 600px) {

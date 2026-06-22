@@ -128,9 +128,15 @@ function bootApp() {
   initCsvBtns();
   initDetailsToggle();
   initFab();
+  initDispenseBtn();
   renderDispenseTable();
   loadUserProfile();
   if (!CHATBOT_HF_SPACE && !CHATBOT_API_URL) document.getElementById('chatApiNote')?.removeAttribute('hidden');
+}
+
+// ===== DISPENSE BUTTON INIT =====
+function initDispenseBtn() {
+  document.getElementById('dispenseBtn')?.addEventListener('click', triggerDispense);
 }
 
 // ===== SIDEBAR NAVIGATION =====
@@ -478,12 +484,88 @@ function processData(d) {
   setConnStatus('live');
 }
 
+// ===== DISPENSE TRIGGER =====
+function triggerDispense() {
+  const d = state.latestData;
+  if (!d) { toast('No sensor data yet — cannot dispense.', 'error'); return; }
+  if (d.bottle !== 1) { toast('Place a bottle first.', 'error'); return; }
+  if (d.temp > TEMP_THRESHOLD) { toast('Temperature too high — wait for cooling.', 'error'); return; }
+  if (d.ready !== 1) { toast('System not ready — check device status.', 'error'); return; }
+
+  const btn = document.getElementById('dispenseBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Dispensing…'; }
+
+  db.ref('/commands/dispense_trigger').set(true)
+    .then(() => {
+      toast('Dispense command sent!', 'success');
+      addDispenseEntry({ count: d.count, patient: state.user?.displayName || 'Manual' });
+    })
+    .catch(err => toast('Dispense failed: ' + err.message, 'error'))
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg> Dispense`;
+      }
+    });
+}
+
 // ===== FIREBASE RTDB LISTENER =====
 function initFirebase() {
-  db.ref('/dosebot/Sensors').on('value',
-    snap => { const d = snap.val(); if (d && typeof d === 'object') processData(d); },
-    err  => { console.error('[DoseBot]', err.message); setConnStatus('offline'); }
+  // --- Merge data from multiple Firebase paths into a unified object ---
+  const merged = { temp: 0, humidity: 0, voltage: 0, bottle: 0, ready: 0, count: 0, weight: 0, temp_safe: false, bottle_present: false, last_update: '' };
+
+  // /Sensors → temp, humidity, voltage, bottle
+  db.ref('/Sensors').on('value',
+    snap => {
+      const s = snap.val();
+      if (!s || typeof s !== 'object') return;
+      merged.temp     = typeof s.temp === 'number' ? s.temp : 0;
+      merged.humidity  = typeof s.humidity === 'number' ? s.humidity : 0;
+      merged.voltage   = typeof s.voltage === 'number' ? s.voltage : 0;
+      merged.bottle    = s.bottle === 1 || s.bottle === true ? 1 : 0;
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Sensors:', err.message); setConnStatus('offline'); }
   );
+
+  // /status → bottle_present, ready, temp_safe
+  db.ref('/status').on('value',
+    snap => {
+      const s = snap.val();
+      if (!s || typeof s !== 'object') return;
+      merged.bottle_present = s.bottle_present === 'true' || s.bottle_present === true;
+      merged.ready          = (s.ready === 'true' || s.ready === true) ? 1 : 0;
+      merged.temp_safe      = s.temp_safe === 'true' || s.temp_safe === true;
+      // Use bottle_present from status if Sensors.bottle is not set
+      if (merged.bottle === 0 && merged.bottle_present) merged.bottle = 1;
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Status:', err.message); }
+  );
+
+  // /counters → pill_count, last_update
+  db.ref('/counters').on('value',
+    snap => {
+      const c = snap.val();
+      if (!c || typeof c !== 'object') return;
+      merged.count       = typeof c.pill_count === 'number' ? c.pill_count : 0;
+      merged.last_update = c.last_update || '';
+      processData({ ...merged });
+    },
+    err => { console.error('[DoseBot] Counters:', err.message); }
+  );
+
+  // /commands → dispense_trigger (monitor state)
+  db.ref('/commands/dispense_trigger').on('value', snap => {
+    const val = snap.val();
+    const btn = document.getElementById('dispenseBtn');
+    if (btn && val === true) {
+      btn.classList.add('dispensing');
+    } else if (btn) {
+      btn.classList.remove('dispensing');
+    }
+  });
+
   db.ref('.info/connected').on('value', snap => {
     if (!snap.val()) setConnStatus(state.lastDataTime > 0 ? 'offline' : 'connecting');
   });
