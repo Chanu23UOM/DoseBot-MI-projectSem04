@@ -15,12 +15,12 @@ const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
    A separate Gradio Space that proxies chat to an open-source medical LLM
    via the HF Inference API. Deploy chatbot-space/ to HF and set the ID below.
    Leave empty to use CHATBOT_API_URL or built-in placeholders. */
-const CHATBOT_HF_SPACE = 'Chanu2003/DoseBot-Chatbot';
+const CHATBOT_HF_SPACE = 'https://chanu2003-dosebot-chatbot.hf.space';
 
 /* ===== PRESCRIPTION OCR via Hugging Face Space + ESP32-CAM =====
    The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
    gr.Interface default ('/predict'); the image is sent positionally. */
-const OCR_HF_SPACE = 'Chanu2003/DoseBotV2';
+const OCR_HF_SPACE = 'https://chanu2003-dosebotv2.hf.space';
 const OCR_ENDPOINT = '/predict_medicine';
 
 // ===== FIREBASE CONFIG (same as auth.js) =====
