@@ -813,9 +813,15 @@ async function readPrescription(getBlob) {
     const client = await Client.connect(OCR_HF_SPACE);
     const result = await client.predict(OCR_ENDPOINT, { image: blob });
 
-    const [text, label, confidence] = Array.isArray(result?.data) ? result.data : [result?.data];
-    const note = label ? `<br><small style="color:var(--text-muted)">(${label}${confidence != null ? `, ${Math.round(confidence * 100)}%` : ''})</small>` : '';
-    if (resultText) resultText.innerHTML = `<strong>📝 Detected Text:</strong><br>${text || '(no text detected)'}${note}`;
+    const labelData = result?.data?.[0];
+    const textData  = result?.data?.[1];
+
+    const labelName = labelData?.label || '';
+    const confObj = labelData?.confidences?.find(c => c.label === labelName);
+    const confidenceVal = confObj ? confObj.confidence : null;
+
+    const note = labelName ? `<br><small style="color:var(--text-muted)">(${labelName}${confidenceVal != null ? `, ${Math.round(confidenceVal * 100)}%` : ''})</small>` : '';
+    if (resultText) resultText.innerHTML = `<strong>📝 Detected Text:</strong><br>${textData || '(no text detected)'}${note}`;
   } catch (err) {
     const hint = /failed to fetch|networkerror|load failed/i.test(err.message)
       ? '<br><small>Hint: Check ESP32 CORS or network connection.</small>'
