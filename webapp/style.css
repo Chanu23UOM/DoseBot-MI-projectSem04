@@ -6,13 +6,15 @@
   --surface:      #ffffff;
   --surface-2:    #eef2f8;
   --surface-3:    #e1e7f1;
-  --accent:       #0d9488;
-  --accent-dark:  #0f766e;
+  --accent:       #0D9488;
+  --accent-dark:  #0a7369;
   --accent-light: rgba(13,148,136,0.12);
   --accent-glow:  rgba(13,148,136,0.22);
+  --accent-secondary: #EA580C;
+  --accent-tertiary: #C36D4B;
   --text-primary: #1c2536;
   --text-secondary:#51607a;
-  --text-muted:   #8696ad;
+  --text-muted:   #737877;
   --border:       rgba(20,30,50,0.07);
   --border-2:     rgba(20,30,50,0.12);
   --success:      #10b981;
@@ -33,7 +35,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; }
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text-primary);
   line-height: 1.6;
@@ -160,7 +162,7 @@ img { display: block; max-width: 100%; }
   color: white;
 }
 .auth-brand-name {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 20px; font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -251,7 +253,7 @@ body.app-page::before {
   color: white; flex-shrink: 0;
 }
 .sidebar-brand-name {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 17px; font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -329,7 +331,7 @@ body.app-page::before {
 .topbar-menu-btn:hover { background: var(--surface-2); color: var(--text-primary); }
 
 .topbar-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 16px; font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -396,7 +398,7 @@ body.app-page::before {
 
 .page-header { margin-bottom: 24px; }
 .page-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 22px; font-weight: 800;
   letter-spacing: -0.02em; margin-bottom: 4px;
 }
@@ -492,7 +494,7 @@ body.app-page::before {
   filter: drop-shadow(0 4px 10px var(--ring-soft));
 }
 .hero-temp {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.05rem; font-weight: 700;
   color: var(--text-secondary); margin-top: 4px;
 }
@@ -506,7 +508,7 @@ body.app-page::before {
 .hero-ring.state-danger::after     { animation-duration: 0.9s; }
 
 .hero-text {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.5rem; font-weight: 800;
   letter-spacing: -0.02em;
   margin-top: 22px; color: var(--text-primary);
@@ -568,7 +570,7 @@ body.app-page::before {
 .ic-green { background: rgba(16,185,129,0.12); color: var(--success); }
 .ic-amber { background: rgba(245,158,11,0.12); color: var(--warning); }
 .metric-num {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 2.2rem; font-weight: 800;
   letter-spacing: -0.04em; line-height: 1; color: var(--text-primary);
 }
@@ -621,7 +623,7 @@ body.app-page::before {
   margin-bottom: 14px;
 }
 .dash-card-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 14px; font-weight: 700;
 }
 .chart-wrap { position: relative; height: 200px; }
@@ -671,7 +673,7 @@ body.app-page::before {
   padding: 24px;
 }
 .form-card-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 15px; font-weight: 700; margin-bottom: 20px;
   display: flex; align-items: center; gap: 8px;
 }
@@ -973,7 +975,7 @@ body.app-page::before {
   width: 80px; height: 80px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #0ea5e9);
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 28px; font-weight: 800; color: white;
   margin: 0 auto 16px;
 }
@@ -993,7 +995,7 @@ body.app-page::before {
   padding: 24px;
 }
 .info-card-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 14px; font-weight: 700; margin-bottom: 18px;
 }
 .info-field { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
@@ -1060,6 +1062,58 @@ body.app-page::before {
 .fab:active { transform: translateY(0); }
 .fab svg { flex-shrink: 0; }
 .fab.hidden { opacity: 0; visibility: hidden; transform: translateY(12px); pointer-events: none; }
+
+/* ===== COMING SOON OVERLAY ===== */
+.coming-soon-overlay {
+  position: absolute; inset: 0; z-index: 10;
+  background: rgba(244, 246, 251, 0.85); /* var(--bg) with opacity */
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-lg);
+}
+.coming-soon-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  max-width: 400px;
+  animation: viewIn 0.3s ease;
+}
+.coming-soon-card svg {
+  color: var(--accent-secondary);
+  margin-bottom: 16px;
+}
+.coming-soon-card h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.coming-soon-card p {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ===== SCANNER RESULT ===== */
+.scanner-result-wrap {
+  margin-top: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--accent-light);
+  border-radius: var(--r-md);
+  padding: 16px;
+  animation: viewIn 0.3s ease;
+}
+.scanner-result-head {
+  font-size: 12px; font-weight: 700; color: var(--accent-dark);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 8px; border-bottom: 1px solid var(--accent-light);
+  padding-bottom: 8px;
+}
+.scanner-result-text {
+  font-size: 14px; color: var(--text-primary);
+  white-space: pre-wrap; line-height: 1.6;
+}
 
 /* =========================================================
    RESPONSIVE
@@ -1129,7 +1183,7 @@ body.app-page::before {
   border: none;
   border-radius: var(--r-full);
   box-shadow: 0 6px 24px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.08);
-  font-family: 'Sora', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 15px; font-weight: 700;
   color: white;
   cursor: pointer;

@@ -778,28 +778,31 @@ function initPrescriptionCam() {
   // Read from an uploaded / phone-camera photo (no ESP32 needed)
   uploadBtn?.addEventListener('click', async () => {
     const file = fileInput?.files?.[0];
-    if (!file) { appendChatMsg('bot', 'Please choose an image first.'); return; }
+    if (!file) { toast('Please choose an image first.', 'warning'); return; }
     await readPrescription(async () => file);
   });
 }
 
 // Shared OCR pipeline: `getBlob()` supplies the image (ESP32 capture or upload).
 async function readPrescription(getBlob) {
-  if (state.chatWaiting) return;
+  if (state.scanWaiting) return;
   const captureBtn = document.getElementById('captureReadBtn');
   const uploadBtn  = document.getElementById('uploadReadBtn');
+  const resultWrap = document.getElementById('scannerResultWrap');
+  const resultText = document.getElementById('scannerResultText');
 
-  state.chatWaiting = true;
+  state.scanWaiting = true;
   if (captureBtn) captureBtn.disabled = true;
   if (uploadBtn)  uploadBtn.disabled  = true;
-  const typingEl = appendTypingIndicator();
+  
+  if (resultWrap) resultWrap.hidden = false;
+  if (resultText) resultText.innerHTML = '<span style="color:var(--text-muted)">Analyzing image...</span>';
 
   try {
     const blob = await getBlob();
 
     if (!OCR_HF_SPACE) {
-      typingEl.remove();
-      appendChatMsg('bot', 'Got the image, but the OCR model is not configured yet. Set OCR_HF_SPACE in app.js to your Hugging Face Space.');
+      if (resultText) resultText.innerHTML = '<span style="color:var(--danger)">OCR model is not configured yet. Set OCR_HF_SPACE in app.js.</span>';
       return;
     }
 
@@ -811,17 +814,15 @@ async function readPrescription(getBlob) {
     const result = await client.predict(OCR_ENDPOINT, { image: blob });
 
     const [text, label, confidence] = Array.isArray(result?.data) ? result.data : [result?.data];
-    typingEl.remove();
-    const note = label ? `\n(${label}${confidence != null ? `, ${Math.round(confidence * 100)}%` : ''})` : '';
-    appendChatMsg('bot', `📝 Prescription reading:\n${text || '(no text detected)'}${note}`);
+    const note = label ? `<br><small style="color:var(--text-muted)">(${label}${confidence != null ? `, ${Math.round(confidence * 100)}%` : ''})</small>` : '';
+    if (resultText) resultText.innerHTML = `<strong>📝 Detected Text:</strong><br>${text || '(no text detected)'}${note}`;
   } catch (err) {
-    typingEl.remove();
     const hint = /failed to fetch|networkerror|load failed/i.test(err.message)
-      ? ' This usually means the ESP32-CAM is missing the "Access-Control-Allow-Origin" CORS header in its firmware, or you are not on the same WiFi.'
+      ? '<br><small>Hint: Check ESP32 CORS or network connection.</small>'
       : '';
-    appendChatMsg('bot', `Could not read the prescription: ${err.message}.${hint}`);
+    if (resultText) resultText.innerHTML = `<span style="color:var(--danger)">Could not read the prescription: ${err.message}${hint}</span>`;
   } finally {
-    state.chatWaiting = false;
+    state.scanWaiting = false;
     if (captureBtn) captureBtn.disabled = false;
     if (uploadBtn)  uploadBtn.disabled  = false;
   }

@@ -6,7 +6,7 @@
   <title>DoseBot App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <meta name="theme-color" content="#f4f6fb">
   <link rel="icon" type="image/png" href="assets/dosebot_pill_avatar.png">
 
@@ -293,13 +293,20 @@
     </section>
 
     <!-- ===== PRESCRIPTION ===== -->
-    <section class="section-view" id="view-prescription" aria-labelledby="rxTitle">
-      <div class="page-header">
+    <section class="section-view" id="view-prescription" aria-labelledby="rxTitle" style="position: relative;">
+      <div class="coming-soon-overlay">
+        <div class="coming-soon-card">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <h3>Coming Soon</h3>
+          <p>This feature will roll out in the next update.</p>
+        </div>
+      </div>
+      <div class="page-header" style="opacity: 0.3; pointer-events: none;">
         <h1 class="page-title" id="rxTitle">Prescription</h1>
         <p class="page-sub">Submit a prescription — the kiosk will read it and dispense</p>
       </div>
 
-      <div class="prescription-layout">
+      <div class="prescription-layout" style="opacity: 0.3; pointer-events: none;">
         <!-- Form -->
         <div class="form-card">
           <h2 class="form-card-title">
@@ -450,6 +457,10 @@
         <div class="cam-card-row">
           <input type="file" id="prescFile" class="cam-file-input" accept="image/*" capture="environment" aria-label="Upload prescription image">
           <button id="uploadReadBtn" class="cam-btn">Read image</button>
+        </div>
+        <div id="scannerResultWrap" class="scanner-result-wrap" hidden>
+          <div class="scanner-result-head">Scan Result</div>
+          <div id="scannerResultText" class="scanner-result-text"></div>
         </div>
       </div>
     </section>
