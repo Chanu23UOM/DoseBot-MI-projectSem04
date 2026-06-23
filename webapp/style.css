@@ -1427,3 +1427,60 @@ body.app-page::before {
   }
   * { scroll-behavior: auto !important; }
 }
+
+/* =========================================================
+   ✦ MASCOTS & DOCTOR ART (uploaded brand characters)
+   ========================================================= */
+
+/* Brand icon → mascot head (replaces the old padlock glyph) */
+.sidebar-brand-icon.brand-mascot,
+.auth-brand-icon.brand-mascot {
+  background: #eaf7f5;
+  overflow: hidden;
+  padding: 0;
+}
+.brand-mascot img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  mix-blend-mode: multiply;
+}
+
+/* Dashboard welcome hero — framed doctor illustration + mascot badge */
+.welcome-hero { position: relative; }
+.welcome-hero-art { width: 250px; max-width: 40%; }
+.welcome-doctor {
+  width: 100%; height: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+}
+.hero-mascot {
+  position: absolute; top: 14px; right: 16px; z-index: 3;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #fff; padding: 4px;
+  object-fit: cover; object-position: center top;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.20);
+  animation: floatY 5s ease-in-out infinite;
+}
+@media (max-width: 720px) {
+  .welcome-hero-art { display: none; }
+  .hero-mascot { top: 10px; right: 12px; width: 48px; height: 48px; }
+}
+
+/* Per-tab floating mascot (Scanner, Dispense Log) over light surfaces */
+.section-view { position: relative; }
+.tab-mascot {
+  position: absolute; top: 2px; right: 24px; z-index: 1;
+  height: 78px; width: auto; pointer-events: none;
+  mix-blend-mode: multiply;
+  animation: floatY 6s ease-in-out infinite;
+}
+@media (max-width: 820px) { .tab-mascot { height: 56px; right: 14px; } }
+@media (max-width: 560px) { .tab-mascot { display: none; } }
+
+/* Chatbot welcome — mascot instead of the line illustration */
+.chat-welcome-mascot {
+  width: auto; height: 150px;
+  filter: none;
+  mix-blend-mode: multiply;
+}

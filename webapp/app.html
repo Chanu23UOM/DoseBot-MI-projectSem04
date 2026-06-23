@@ -38,12 +38,8 @@
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-logo">
-      <div class="sidebar-brand-icon" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="11" width="18" height="11" rx="2" fill="white" opacity="0.25"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-          <circle cx="12" cy="16" r="2.2" fill="white"/>
-        </svg>
+      <div class="sidebar-brand-icon brand-mascot" aria-hidden="true">
+        <img src="assets/mascots/mascot-smile.png" alt="">
       </div>
       <span class="sidebar-brand-name">DoseBot</span>
       <div class="project-status-badge" aria-live="polite">
@@ -127,11 +123,9 @@
           <span class="welcome-date" id="welcomeDate"></span>
         </div>
         <div class="welcome-hero-art" aria-hidden="true">
-          <img src="assets/illustrations/dashboard.svg" alt="">
-          <span class="float-pill fp-1"></span>
-          <span class="float-pill fp-2"></span>
-          <span class="float-pill fp-3"></span>
+          <img class="welcome-doctor" src="assets/doctor.png" alt="">
         </div>
+        <img class="hero-mascot" src="assets/mascots/mascot-wave.png" alt="" aria-hidden="true">
       </div>
 
       <div class="dash-toolbar">
@@ -283,6 +277,7 @@
 
     <!-- ===== DISPENSE LOG ===== -->
     <section class="section-view" id="view-dispense-log" aria-labelledby="logTitle">
+      <img class="tab-mascot" src="assets/mascots/mascot-smile.png" alt="" aria-hidden="true">
       <div class="page-header">
         <h1 class="page-title" id="logTitle">Dispense Log</h1>
         <p class="page-sub">Complete history of all dispense events</p>
@@ -424,7 +419,7 @@
       <div class="chat-layout chat-empty" id="chatLayout">
         <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Chat messages">
           <div class="chat-welcome">
-            <img class="chat-welcome-art" src="assets/illustrations/chatbot.svg" alt="">
+            <img class="chat-welcome-art chat-welcome-mascot" src="assets/mascots/mascot-wave.png" alt="">
             <h3>DoseBot AI Assistant</h3>
             <p>Ask me about medications, dosage, side effects, or general health questions. I'm here to help.</p>
             <div class="chat-suggestions">
@@ -451,6 +446,7 @@
 
     <!-- ===== SCANNER ===== -->
     <section class="section-view" id="view-scanner" aria-labelledby="scanTitle">
+      <img class="tab-mascot" src="assets/mascots/mascot-laugh.png" alt="" aria-hidden="true">
       <div class="page-header">
         <h1 class="page-title" id="scanTitle">Scanner</h1>
         <p class="page-sub">Scan a handwritten prescription to automatically extract text</p>
