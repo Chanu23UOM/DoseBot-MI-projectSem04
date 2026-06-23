@@ -118,6 +118,22 @@
         <p class="page-sub">Real-time sensor data from the DoseBot kiosk via Firebase</p>
       </div>
 
+      <!-- Welcome hero banner (decorative greeting) -->
+      <div class="welcome-hero">
+        <div class="welcome-hero-text">
+          <span class="welcome-eyebrow">DoseBot · Precision Care</span>
+          <h2 class="welcome-title">Welcome back, <span id="welcomeName">there</span> 👋</h2>
+          <p class="welcome-sub">Here's how your DoseBot kiosk is doing today.</p>
+          <span class="welcome-date" id="welcomeDate"></span>
+        </div>
+        <div class="welcome-hero-art" aria-hidden="true">
+          <img src="assets/illustrations/dashboard.svg" alt="">
+          <span class="float-pill fp-1"></span>
+          <span class="float-pill fp-2"></span>
+          <span class="float-pill fp-3"></span>
+        </div>
+      </div>
+
       <div class="dash-toolbar">
         <div class="system-badge" id="systemBadge" aria-live="polite">
           <span class="badge-dot"></span>
@@ -408,11 +424,14 @@
       <div class="chat-layout chat-empty" id="chatLayout">
         <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Chat messages">
           <div class="chat-welcome">
-            <div class="chat-welcome-icon">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
+            <img class="chat-welcome-art" src="assets/illustrations/chatbot.svg" alt="">
             <h3>DoseBot AI Assistant</h3>
             <p>Ask me about medications, dosage, side effects, or general health questions. I'm here to help.</p>
+            <div class="chat-suggestions">
+              <button type="button" class="chat-chip" data-q="What are the common side effects of Paracetamol?">💊 Paracetamol side effects</button>
+              <button type="button" class="chat-chip" data-q="How should insulin be stored?">🌡️ Storing insulin</button>
+              <button type="button" class="chat-chip" data-q="Can I take ibuprofen with blood pressure medication?">⚠️ Ibuprofen interactions</button>
+            </div>
           </div>
         </div>
         <div class="chat-input-area">

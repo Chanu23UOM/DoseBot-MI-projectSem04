@@ -12,6 +12,15 @@
   --accent-glow:  rgba(13,148,136,0.22);
   --accent-secondary: #EA580C;
   --accent-tertiary: #C36D4B;
+  /* Vibrant duotone layer (added — teal brand kept, violet/indigo for energy) */
+  --violet:        #7C3AED;
+  --violet-dark:   #6D28D9;
+  --violet-light:  rgba(124,58,237,0.12);
+  --indigo:        #6366F1;
+  --grad-brand:  linear-gradient(135deg, #0D9488 0%, #6366F1 55%, #7C3AED 100%);
+  --grad-brand-soft: linear-gradient(135deg, rgba(13,148,136,0.12), rgba(99,102,241,0.10) 55%, rgba(124,58,237,0.12));
+  --grad-violet: linear-gradient(135deg, #6366F1, #7C3AED);
+  --lilac:       #F3F0FF;
   --text-primary: #1c2536;
   --text-secondary:#51607a;
   --text-muted:   #737877;
@@ -1249,4 +1258,172 @@ body.app-page::before {
 @media (max-width: 360px) {
   .metric-grid { grid-template-columns: 1fr; }
   .led-row { grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   ✦ VIBRANT DUOTONE UPGRADE (additive — Sign-in, Dashboard, Chatbot)
+   ========================================================= */
+
+/* ----- Shared decorative bits & keyframes ----- */
+@keyframes floatY     { 0%,100% { transform: translateY(0) rotate(var(--fp-rot,0deg)); } 50% { transform: translateY(-14px) rotate(var(--fp-rot,0deg)); } }
+@keyframes riseIn     { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer    { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes blobDrift  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(12px,-10px) scale(1.05); } }
+
+/* Floating capsule pills used on hero banners / brand panel */
+.float-pill {
+  position: absolute; width: 38px; height: 18px; border-radius: var(--r-full);
+  background: linear-gradient(90deg, #34d399 50%, #A7F3D0 50%);
+  box-shadow: 0 8px 18px rgba(13,148,136,0.28);
+  opacity: 0.9; pointer-events: none;
+  animation: floatY 6s ease-in-out infinite;
+}
+.float-pill.fp-1 { top: 12%;  right: 16%; --fp-rot: 28deg; animation-delay: 0s;   }
+.float-pill.fp-2 { bottom: 18%; right: 30%; --fp-rot: -18deg; width: 30px; height: 14px;
+  background: linear-gradient(90deg, var(--violet) 50%, #C4B5FD 50%); box-shadow: 0 8px 18px rgba(124,58,237,0.28); animation-delay: 1.2s; }
+.float-pill.fp-3 { top: 30%;  right: 40%; --fp-rot: 12deg; width: 26px; height: 12px;
+  background: linear-gradient(90deg, var(--indigo) 50%, #C7D2FE 50%); box-shadow: 0 8px 18px rgba(99,102,241,0.28); animation-delay: 0.6s; }
+
+/* Gradient page titles site-wide (eye-catching, no layout change) */
+.page-title {
+  background: var(--grad-brand);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ----- DASHBOARD: welcome hero banner ----- */
+.welcome-hero {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 26px 30px;
+  margin-bottom: 22px;
+  border-radius: var(--r-lg);
+  background: var(--grad-brand);
+  box-shadow: 0 18px 44px rgba(99,102,241,0.28);
+  color: #fff;
+  animation: riseIn 0.5s ease both;
+}
+.welcome-hero::after { /* moving sheen */
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.18), transparent);
+  filter: blur(6px); animation: shimmer 6s ease-in-out infinite; animation-delay: 1s;
+}
+.welcome-hero::before { /* soft blob */
+  content: ''; position: absolute; right: -40px; top: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+  animation: blobDrift 9s ease-in-out infinite;
+}
+.welcome-hero-text { position: relative; z-index: 2; }
+.welcome-eyebrow {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 12px; border-radius: var(--r-full);
+  background: rgba(255,255,255,0.18); margin-bottom: 12px;
+}
+.welcome-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+}
+.welcome-sub { font-size: 14px; opacity: 0.92; margin-top: 6px; }
+.welcome-date { display: inline-block; margin-top: 14px; font-size: 12px; font-weight: 600; opacity: 0.85; }
+.welcome-hero-art { position: relative; z-index: 1; flex-shrink: 0; width: 230px; max-width: 38%; }
+.welcome-hero-art img { width: 100%; height: auto; filter: drop-shadow(0 10px 24px rgba(0,0,0,0.18)); }
+
+@media (max-width: 720px) {
+  .welcome-hero { padding: 22px; }
+  .welcome-hero-art { display: none; }
+  .welcome-title { font-size: 1.5rem; }
+}
+
+/* ----- DASHBOARD: punchier metric & dash cards ----- */
+.metric-card { animation: riseIn 0.45s ease both; }
+.metric-grid .metric-card:nth-child(1) { animation-delay: 0.04s; }
+.metric-grid .metric-card:nth-child(2) { animation-delay: 0.10s; }
+.metric-grid .metric-card:nth-child(3) { animation-delay: 0.16s; }
+.metric-grid .metric-card:nth-child(4) { animation-delay: 0.22s; }
+.metric-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(99,102,241,0.16); }
+.metric-icon-wrap { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5); }
+.ic-teal  { background: var(--grad-brand); color: #fff; }
+.ic-blue  { background: var(--grad-violet); color: #fff; }
+.dash-card { transition: box-shadow var(--t), transform var(--t); }
+.dash-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+/* ----- AUTH: two-panel brand layout ----- */
+.auth-shell {
+  position: relative; z-index: 2;
+  display: flex; width: 100%; max-width: 860px;
+  border-radius: var(--r-lg); overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgba(36,55,90,0.28);
+}
+.auth-brand-panel {
+  position: relative; overflow: hidden;
+  flex: 1 1 46%;
+  background: var(--grad-brand);
+  color: #fff;
+  padding: 40px 34px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.auth-brand-panel::before {
+  content: ''; position: absolute; right: -60px; bottom: -70px;
+  width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%);
+  animation: blobDrift 10s ease-in-out infinite;
+}
+.auth-brand-badge {
+  display: inline-block; align-self: flex-start;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: var(--r-full);
+  background: rgba(255,255,255,0.18); margin-bottom: 18px;
+}
+.auth-brand-headline {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.85rem; font-weight: 800; line-height: 1.18; letter-spacing: -0.02em;
+}
+.auth-brand-copy { font-size: 14px; opacity: 0.92; margin-top: 12px; max-width: 280px; }
+.auth-brand-art { position: relative; z-index: 1; width: 100%; margin-top: 24px;
+  filter: drop-shadow(0 14px 30px rgba(0,0,0,0.22)); }
+/* Card sits flush inside the shell on the right */
+.auth-shell .auth-card {
+  flex: 1 1 54%; max-width: none;
+  border: none; border-radius: 0; box-shadow: none;
+  display: flex; flex-direction: column; justify-content: center;
+}
+@media (max-width: 760px) {
+  .auth-shell { flex-direction: column; max-width: 440px; }
+  .auth-brand-panel { padding: 28px 26px 22px; }
+  .auth-brand-headline { font-size: 1.5rem; }
+  .auth-brand-copy { max-width: none; }
+  .auth-brand-art { display: none; }
+}
+
+/* ----- CHATBOT: richer empty-state ----- */
+.chat-welcome-art { width: 200px; max-width: 70%; margin: 0 auto 12px; display: block;
+  filter: drop-shadow(0 10px 22px rgba(99,102,241,0.18)); animation: riseIn 0.5s ease both; }
+.chat-suggestions {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  margin-top: 18px; max-width: 460px; margin-left: auto; margin-right: auto;
+}
+.chat-chip {
+  padding: 9px 14px; border-radius: var(--r-full);
+  background: var(--surface); border: 1px solid var(--border-2);
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--t);
+}
+.chat-chip:hover {
+  color: var(--violet); border-color: var(--violet);
+  transform: translateY(-2px); box-shadow: 0 8px 20px var(--violet-light);
+}
+.chat-send-btn { background: var(--grad-violet); }
+.chat-send-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+/* ----- Accessibility: respect reduced-motion ----- */
+@media (prefers-reduced-motion: reduce) {
+  .float-pill, .welcome-hero, .welcome-hero::after, .welcome-hero::before,
+  .auth-brand-panel::before, .metric-card, .chat-welcome-art {
+    animation: none !important;
+  }
+  * { scroll-behavior: auto !important; }
 }

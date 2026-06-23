@@ -1,0 +1,61 @@
+<svg viewBox="0 0 480 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Medical care illustration">
+  <defs>
+    <linearGradient id="si-blob" x1="60" y1="40" x2="430" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D9488"/>
+      <stop offset="0.55" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="si-card" x1="150" y1="120" x2="340" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#F3F0FF"/>
+    </linearGradient>
+    <linearGradient id="si-cap" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- soft duotone backdrop blob -->
+  <path d="M243 26c78 -10 156 26 188 96 33 71 12 165 -42 214 -54 49 -150 53 -222 28 -78 -27 -132 -86 -135 -158 -3 -73 47 -140 116 -164 31 -11 63 -12 95 -16Z" fill="url(#si-blob)" opacity="0.12"/>
+  <circle cx="240" cy="205" r="150" fill="url(#si-blob)" opacity="0.10"/>
+
+  <!-- floating plus marks -->
+  <g fill="#7C3AED" opacity="0.55">
+    <path d="M96 92h10v6h-10v10h-6V98H84v-6h6V82h6Z"/>
+    <path d="M392 250h12v7h-12v12h-7v-12h-12v-7h12v-12h7Z" opacity="0.7"/>
+  </g>
+  <g fill="#0D9488" opacity="0.5">
+    <path d="M118 300h9v5h-9v9h-5v-9h-9v-5h9v-9h5Z"/>
+  </g>
+
+  <!-- main rounded medical card -->
+  <rect x="138" y="108" width="204" height="200" rx="30" fill="url(#si-card)" stroke="#E6E1FB" stroke-width="2"/>
+
+  <!-- heart -->
+  <path d="M240 250c-4 0 -52 -28 -64 -64 -7 -22 6 -45 30 -48 16 -2 28 7 34 17 6 -10 18 -19 34 -17 24 3 37 26 30 48 -12 36 -60 64 -64 64Z" fill="#0D9488" opacity="0.95"/>
+  <!-- pulse line across heart -->
+  <path d="M186 214h22l9 -20 14 40 10 -22 9 12h26" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- stethoscope curving below the card -->
+  <path d="M150 318c20 36 70 50 108 36" stroke="#6366F1" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="316" r="11" fill="#6366F1"/>
+  <circle cx="150" cy="316" r="5" fill="#fff"/>
+  <circle cx="262" cy="356" r="16" fill="#7C3AED"/>
+  <circle cx="262" cy="356" r="8" fill="#EDE9FE"/>
+
+  <!-- floating capsules -->
+  <g transform="rotate(35 360 150)">
+    <rect x="332" y="134" width="56" height="30" rx="15" fill="url(#si-cap)"/>
+    <rect x="360" y="134" width="28" height="30" rx="15" fill="#A7F3D0"/>
+    <line x1="360" y1="134" x2="360" y2="164" stroke="#0a7369" stroke-width="2" opacity="0.4"/>
+  </g>
+  <g transform="rotate(-22 120 170)">
+    <rect x="92" y="156" width="52" height="28" rx="14" fill="#7C3AED"/>
+    <rect x="118" y="156" width="26" height="28" rx="14" fill="#C4B5FD"/>
+  </g>
+
+  <!-- round pills -->
+  <circle cx="356" cy="300" r="16" fill="#fff" stroke="#6366F1" stroke-width="4"/>
+  <path d="M345 300h22" stroke="#6366F1" stroke-width="3"/>
+  <circle cx="110" cy="232" r="11" fill="#34d399"/>
+</svg>

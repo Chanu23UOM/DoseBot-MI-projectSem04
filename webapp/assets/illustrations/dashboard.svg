@@ -1,0 +1,57 @@
+<svg viewBox="0 0 420 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Health monitoring illustration">
+  <defs>
+    <linearGradient id="db-blob" x1="40" y1="20" x2="380" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D9488"/>
+      <stop offset="0.55" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="db-screen" x1="120" y1="70" x2="300" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#F3F0FF"/>
+    </linearGradient>
+    <linearGradient id="db-bar" x1="0" y1="1" x2="0" y2="0">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <circle cx="210" cy="160" r="135" fill="url(#db-blob)" opacity="0.12"/>
+
+  <!-- monitor / device card -->
+  <rect x="104" y="64" width="212" height="168" rx="22" fill="url(#db-screen)" stroke="#E6E1FB" stroke-width="2"/>
+  <rect x="104" y="64" width="212" height="34" rx="22" fill="#0D9488" opacity="0.10"/>
+  <circle cx="124" cy="81" r="5" fill="#0D9488"/>
+  <circle cx="140" cy="81" r="5" fill="#6366F1" opacity="0.6"/>
+
+  <!-- pulse line -->
+  <path d="M122 150h26l12 -26 16 50 13 -34 11 18h40" stroke="#0D9488" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- mini bar chart -->
+  <rect x="128" y="186" width="14" height="26" rx="4" fill="url(#db-bar)" opacity="0.85"/>
+  <rect x="150" y="176" width="14" height="36" rx="4" fill="url(#db-bar)"/>
+  <rect x="172" y="194" width="14" height="18" rx="4" fill="url(#db-bar)" opacity="0.7"/>
+  <rect x="194" y="170" width="14" height="42" rx="4" fill="url(#db-bar)"/>
+
+  <!-- heart badge -->
+  <circle cx="264" cy="190" r="30" fill="#0D9488"/>
+  <path d="M264 205c-2 0 -22 -12 -27 -27 -3 -9 3 -19 13 -20 6 -1 11 3 14 7 3 -4 8 -8 14 -7 10 1 16 11 13 20 -5 15 -25 27 -27 27Z" fill="#fff"/>
+
+  <!-- floating capsule -->
+  <g transform="rotate(32 338 96)">
+    <rect x="314" y="82" width="48" height="26" rx="13" fill="#34d399"/>
+    <rect x="338" y="82" width="24" height="26" rx="13" fill="#A7F3D0"/>
+  </g>
+  <!-- thermometer -->
+  <g transform="rotate(18 86 150)">
+    <rect x="78" y="104" width="14" height="70" rx="7" fill="#fff" stroke="#7C3AED" stroke-width="3"/>
+    <circle cx="85" cy="178" r="13" fill="#7C3AED"/>
+    <rect x="83" y="120" width="4" height="56" rx="2" fill="#7C3AED"/>
+  </g>
+
+  <!-- plus marks -->
+  <g fill="#7C3AED" opacity="0.5">
+    <path d="M330 232h10v6h-10v10h-6v-10h-10v-6h10v-10h6Z"/>
+  </g>
+  <circle cx="116" cy="246" r="9" fill="#6366F1" opacity="0.6"/>
+</svg>

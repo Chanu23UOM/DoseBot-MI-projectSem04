@@ -125,6 +125,7 @@ function bootApp() {
   initTempChart();
   initPrescriptionForm();
   initChatbot();
+  initChatSuggestions();
   initPrescriptionCam();
   initCsvBtns();
   initDetailsToggle();
@@ -193,8 +194,25 @@ function initTopbar() {
   const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
   setText('userName',  name);
   setText('userAvatar', initials);
+  // Decorative welcome-hero greeting (additive — no data/render impact)
+  setText('welcomeName', name.split(' ')[0] || 'there');
+  const wd = document.getElementById('welcomeDate');
+  if (wd) wd.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   document.getElementById('userBtn')?.addEventListener('click', () => {
     document.querySelector('.nav-item[data-section="profile"]')?.click();
+  });
+}
+
+// ===== CHAT SUGGESTION CHIPS (additive — only fills the input) =====
+function initChatSuggestions() {
+  document.querySelectorAll('.chat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const input = document.getElementById('chatInput');
+      if (!input) return;
+      input.value = chip.dataset.q || chip.textContent.trim();
+      input.focus();
+      input.dispatchEvent(new Event('input')); // let existing auto-resize run
+    });
   });
 }
 
