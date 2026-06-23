@@ -784,6 +784,72 @@ function initPrescriptionCam() {
   });
 }
 
+/* =========================================================
+   GRADIO REST HELPERS
+   ---------------------------------------------------------
+   We call the HF Spaces directly via their /gradio_api REST
+   protocol instead of the @gradio/client library, which fails
+   in-browser ("TypeError: Failed to fetch") due to version/
+   protocol skew. The Spaces themselves are healthy and send
+   correct CORS headers, so plain fetch works reliably.
+   ========================================================= */
+
+// Upload a Blob/File to a Space and return its server-side path.
+async function gradioUpload(space, blob, filename = 'image.jpg') {
+  const fd = new FormData();
+  fd.append('files', blob, filename);
+  const res = await fetch(`${space}/gradio_api/upload`, { method: 'POST', body: fd });
+  if (!res.ok) throw new Error(`Upload failed (HTTP ${res.status})`);
+  const paths = await res.json();
+  if (!Array.isArray(paths) || !paths[0]) throw new Error('Upload returned no file path.');
+  return paths[0];
+}
+
+// Call a Space endpoint (two-step: submit job, then stream the result).
+// `apiName` may include a leading slash; `data` is the positional inputs array.
+async function gradioCall(space, apiName, data) {
+  const name = String(apiName).replace(/^\//, '');
+
+  // Step 1 — submit the job, get an event id.
+  const submit = await fetch(`${space}/gradio_api/call/${name}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data }),
+  });
+  if (!submit.ok) throw new Error(`Request failed (HTTP ${submit.status})`);
+  const { event_id } = await submit.json();
+  if (!event_id) throw new Error('Space did not return an event id.');
+
+  // Step 2 — stream the SSE result until the "complete" event.
+  const res = await fetch(`${space}/gradio_api/call/${name}/${event_id}`);
+  if (!res.ok || !res.body) throw new Error(`Result stream failed (HTTP ${res.status})`);
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '', currentEvent = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // keep any partial trailing line
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        currentEvent = line.slice(6).trim();
+      } else if (line.startsWith('data:')) {
+        const payload = line.slice(5).trim();
+        if (currentEvent === 'complete') {
+          try { return JSON.parse(payload); } catch { return payload; }
+        }
+        if (currentEvent === 'error') {
+          throw new Error(payload && payload !== 'null' ? payload : 'The Space returned an error.');
+        }
+      }
+    }
+  }
+  throw new Error('Space closed the stream without returning a result.');
+}
+
 // Shared OCR pipeline: `getBlob()` supplies the image (ESP32 capture or upload).
 async function readPrescription(getBlob) {
   if (state.scanWaiting) return;
@@ -807,16 +873,16 @@ async function readPrescription(getBlob) {
       return;
     }
 
-    // Send it to the DoseBotV2 model hosted on a Hugging Face Space.
-    // Endpoint /predict_medicine takes a named `image` arg and returns
+    // Send it to the DoseBotV2 model on its HF Space via the Gradio REST API.
+    // Upload the image, then call /predict_medicine, which returns
     // [labelData, text], where labelData = { label, confidences: [{label, confidence}] }.
-    // (@gradio/client accepts a Blob directly.)
-    const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
-    const client = await Client.connect(OCR_HF_SPACE);
-    const result = await client.predict(OCR_ENDPOINT, { image: blob });
+    const serverPath = await gradioUpload(OCR_HF_SPACE, blob, 'prescription.jpg');
+    const data = await gradioCall(OCR_HF_SPACE, OCR_ENDPOINT, [
+      { path: serverPath, meta: { _type: 'gradio.FileData' } },
+    ]);
 
-    const labelData = result?.data?.[0];
-    const textData  = result?.data?.[1];
+    const labelData = data?.[0];
+    const textData  = data?.[1];
 
     const labelName = labelData?.label || '';
     const confObj = labelData?.confidences?.find(c => c.label === labelName);
@@ -853,15 +919,10 @@ async function sendChat() {
     let reply;
 
     if (CHATBOT_HF_SPACE) {
-      // ---- HF Space via @gradio/client (same pattern as OCR) ----
-      const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
-      const client = await Client.connect(CHATBOT_HF_SPACE);
+      // ---- HF Space via the Gradio REST API (same pattern as OCR) ----
       const historyJson = JSON.stringify(state.chatHistory.slice(-10));
-      const result = await client.predict('/predict', {
-        message: msg,
-        history: historyJson,
-      });
-      reply = (Array.isArray(result?.data) ? result.data[0] : result?.data) || 'No response from the AI model.';
+      const data = await gradioCall(CHATBOT_HF_SPACE, '/predict', [msg, historyJson]);
+      reply = (Array.isArray(data) ? data[0] : data) || 'No response from the AI model.';
 
     } else if (CHATBOT_API_URL) {
       // ---- Legacy: direct REST API ----
