@@ -7,7 +7,7 @@ medical LLM via the Hugging Face Inference Providers API (free tier).
 Deploy this as a NEW Hugging Face Space (SDK: Gradio, Hardware: CPU basic).
 Set your HF token as a Space Secret named HF_TOKEN.
 
-The frontend (webapp/app.js) calls this Space's /chat endpoint using
+The frontend (webapp/app.js) calls this Space's /predict endpoint using
 the @gradio/client library — identical pattern to the OCR Space.
 """
 

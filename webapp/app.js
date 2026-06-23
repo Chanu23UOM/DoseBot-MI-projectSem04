@@ -18,8 +18,9 @@ const CHATBOT_API_URL = ''; // e.g. 'https://your-api.example.com/chat'
 const CHATBOT_HF_SPACE = 'https://chanu2003-dosebot-chatbot.hf.space';
 
 /* ===== PRESCRIPTION OCR via Hugging Face Space + ESP32-CAM =====
-   The Donut OCR model is hosted on the HF Space below. OCR_ENDPOINT is the
-   gr.Interface default ('/predict'); the image is sent positionally. */
+   The DoseBotV2 medicine OCR/classifier is hosted on the HF Space below.
+   The /predict_medicine endpoint takes a named `image` arg and returns
+   [labelData, text] (see readPrescription). Space: Chanu2003/DoseBotV2 */
 const OCR_HF_SPACE = 'https://chanu2003-dosebotv2.hf.space';
 const OCR_ENDPOINT = '/predict_medicine';
 
@@ -806,9 +807,10 @@ async function readPrescription(getBlob) {
       return;
     }
 
-    // Send it to the Donut OCR model hosted on a Hugging Face Space.
-    // Endpoint /classify_image_gradio takes a named `image` arg and returns
-    // [extractedText, predictedLabel, confidence]. (@gradio/client accepts a Blob directly.)
+    // Send it to the DoseBotV2 model hosted on a Hugging Face Space.
+    // Endpoint /predict_medicine takes a named `image` arg and returns
+    // [labelData, text], where labelData = { label, confidences: [{label, confidence}] }.
+    // (@gradio/client accepts a Blob directly.)
     const { Client } = await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
     const client = await Client.connect(OCR_HF_SPACE);
     const result = await client.predict(OCR_ENDPOINT, { image: blob });
