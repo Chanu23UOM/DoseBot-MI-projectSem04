@@ -1,0 +1,19 @@
+{
+  "Sensors": {
+    "humidity": 24.71,
+    "ready": 1,
+    "temp": 27.58,
+    "voltage": 2.189,
+    "weight": 218.94
+  },
+  "counters": {
+    "last_update": "",
+    "pill_count": 0
+  },
+  "status": {
+    "bottle_present": false,
+    "fan": false,
+    "ready": false,
+    "temp_safe": true
+  }
+}
