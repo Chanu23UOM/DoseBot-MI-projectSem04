@@ -1,0 +1,18 @@
+# ─── ML ────────────────────────────────────────────────────────────────────
+# Nested clone of the DoseBotV2 Hugging Face Space (carries its own git remote).
+# Its deployment source is mirrored, dataset-free, in ML/model/dosebotv2-space/.
+ML/model/DoseBotV2/
+
+# Kaggle "Doctor's Handwritten Prescription BD" dataset (~31 MB, 4,683 images).
+# Not redistributed here — see ML/README.md for the download step.
+**/Doctor’s Handwritten Prescription BD dataset/
+
+# Trained weights: prescription_model.h5 is 16.3 MB and lives on the HF Space.
+*.h5
+*.keras
+
+# ─── Misc ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
